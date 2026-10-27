@@ -16,6 +16,12 @@ function saveSeat(value) { credential = value; try { sessionStorage.setItem(STOR
 function element(tag, className, text) { const el = document.createElement(tag); if (className) el.className = className; if (text !== undefined) el.textContent = text; return el; }
 function img(item) { const image = element('img'); image.src = imageUrl(item.image); image.alt = item.labelRu || item.labelKo; return image; }
 function objectLabel(item) { const box = element('span', 'object-label', item.labelKo); box.lang = 'ko'; const ru = element('small', 'object-ru', item.labelRu); ru.lang = 'ru'; box.append(ru); return box; }
+function pictured(item, className) { const box = element('div', className); box.append(img(item), objectLabel(item)); return box; }
+function contextPanel(task) {
+  const panel = element('div', 'task-context'); panel.setAttribute('aria-label', 'О чём спрашиваем');
+  for (const item of task.contextImages || []) panel.append(pictured(item, 'context-item'));
+  return panel;
+}
 function showEntry() { state = null; renderedInstance = null; $('game').hidden = true; $('entry').hidden = false; $('leave').hidden = true; }
 function enter(data) {
   if (!socket.connected) return notice('Дождитесь подключения к серверу.');
@@ -50,8 +56,10 @@ socket.on('disconnect', reason => {
 socket.on('state', value => {
   if (value.protocolVersion !== 2) return notice('Сервер ещё работает на прежней версии. Дождитесь обновления Render и обновите страницу.');
   const changed = state?.roundInstance !== value.roundInstance;
+  const finished = state?.phase !== 'completed' && value.phase === 'completed';
   if (changed) answerPending = false;
   state = value; offset = value.serverNow - Date.now(); notice(); render();
+  if ((changed && value.phase === 'playing') || finished) $('game').scrollIntoView({ behavior: 'instant', block: 'start' });
 });
 $('create').onclick = () => enter({ mode: 'create' });
 $('join').onsubmit = event => { event.preventDefault(); enter({ mode: 'join', code: $('code').value }); };
@@ -78,23 +86,25 @@ function makeKnown(round) {
       const correct = task.correctAnswer.includes(item.id);
       const row = element('div', 'known-option' + (correct ? ' correct' : ''));
       row.append(img(item), objectLabel(item));
-      if (correct) { const mark = element('span', 'known-marker', '✓'); mark.setAttribute('aria-label', 'Есть: верный предмет для напарника'); row.append(mark); }
+      if (correct) { const mark = element('span', 'known-marker', '✓'); mark.setAttribute('aria-label', 'Верный вариант для напарника'); row.append(mark); }
       else row.setAttribute('aria-label', `${item.labelRu}: не входит в ответ напарника`);
       return row;
     }));
+    if (task.contextImages?.length) $('known-content').prepend(contextPanel(task));
   } else {
-    const subject = element('div', 'known-subject'); subject.append(img(task.subject), objectLabel(task.subject));
-    const answer = element('div', 'known-answer' + (task.correctAnswer === 'NO' ? ' no' : ''), task.correctAnswer === 'YES' ? 'YES · Да' : 'NO · Нет');
+    const subject = element('div', 'known-subject-pair');
+    subject.append(...[task.subject, ...(task.contextImages || [])].map(item => pictured(item, 'known-subject')));
+    const answer = element('div', 'known-answer' + (task.correctAnswer === 'NO' ? ' no' : ''), task.correctAnswer === 'YES' ? '네' : '아니요'); answer.lang = 'ko';
     $('known-content').replaceChildren(subject, answer);
   }
 }
 function makeTask(round) {
   const task = round.ownTask;
   $('task-prompt').textContent = task.promptRu;
-  $('task-kind').textContent = round.type === 'MULTI_SELECT' ? 'Предметы' : 'Да / Нет';
-  $('task-instruction').textContent = round.type === 'MULTI_SELECT' ? 'Спроси напарника по-корейски. Отметь всё, что есть. Можно выбрать несколько предметов.' : 'Задай этот вопрос на корейском. Послушай напарника и выбери один ответ.';
+  $('task-kind').textContent = round.type === 'MULTI_SELECT' ? (round.topicRu || 'Выбор') : '네 / 아니요';
+  $('task-instruction').textContent = task.instructionRu || (round.type === 'MULTI_SELECT' ? 'Спроси напарника по-корейски. Отметь все названные варианты.' : 'Задай этот вопрос на корейском. Послушай напарника и выбери один ответ.');
   if (round.type === 'MULTI_SELECT') {
-    const grid = element('div', 'options-grid'); grid.setAttribute('role', 'group'); grid.setAttribute('aria-label', 'Выберите предметы');
+    const grid = element('div', 'options-grid' + (task.options.length === 4 ? ' four-options' : '')); grid.setAttribute('role', 'group'); grid.setAttribute('aria-label', 'Выберите ответ');
     task.options.forEach(item => {
       const button = element('button', 'option-button'); button.type = 'button'; button.dataset.optionId = item.id;
       button.setAttribute('aria-pressed', 'false');
@@ -103,15 +113,19 @@ function makeTask(round) {
       button.onclick = () => {
         if (answerPending || state.players[state.seat].submitted) return;
         const current = state.draft || [];
+        if (!current.includes(item.id) && task.selectionCount > 1 && current.length >= task.selectionCount) return notice(`Нужно выбрать ${task.selectionCount} варианта. Сначала снимите один выбор.`);
+        if (task.selectionCount === 1 && !current.includes(item.id)) return command('answer', { answer: [item.id] });
         command('answer', { answer: current.includes(item.id) ? current.filter(id => id !== item.id) : [...current, item.id] });
       };
       grid.append(button);
-    }); $('task-content').replaceChildren(grid);
+    }); $('task-content').replaceChildren(...(task.contextImages?.length ? [contextPanel(task)] : []), grid);
   } else {
-    const subject = element('div', 'yesno-subject'); subject.append(img(task.subject), objectLabel(task.subject));
+    const subject = element('div', 'subject-pair' + (task.contextImages?.length ? ' has-context' : ''));
+    subject.append(...[task.subject, ...(task.contextImages || [])].map(item => pictured(item, 'yesno-subject')));
     const buttons = element('div', 'yesno-buttons'); buttons.setAttribute('role', 'group'); buttons.setAttribute('aria-label', 'Выберите один ответ');
-    [['YES', 'Да'], ['NO', 'Нет']].forEach(([answer, text]) => {
+    [['YES', '네'], ['NO', '아니요']].forEach(([answer, text]) => {
       const button = element('button', 'yesno-button', text); button.type = 'button'; button.dataset.answer = answer; button.setAttribute('aria-pressed', 'false');
+      button.lang = 'ko';
       button.onclick = () => { if (!answerPending && !state.players[state.seat].submitted) command('answer', { answer }); };
       buttons.append(button);
     }); $('task-content').replaceChildren(subject, buttons);
@@ -159,11 +173,12 @@ function renderControls() {
     button.disabled = locked; button.setAttribute('aria-pressed', String((s.draft || []).includes(button.dataset.optionId)));
   });
   document.querySelectorAll('[data-answer]').forEach(button => { button.disabled = locked; button.setAttribute('aria-pressed', String(s.draft === button.dataset.answer)); });
-  const hasAnswer = s.round.type === 'MULTI_SELECT' ? Array.isArray(s.draft) && s.draft.length > 0 : ['YES', 'NO'].includes(s.draft);
+  const task = s.round.ownTask;
+  const hasAnswer = s.round.type === 'MULTI_SELECT' ? Array.isArray(s.draft) && (task.selectionCount ? s.draft.length === task.selectionCount : s.draft.length > 0) : ['YES', 'NO'].includes(s.draft);
   $('submit').disabled = locked || !hasAnswer;
   $('submit').classList.toggle('waiting', me.submitted);
   $('submit').textContent = me.submitted ? 'Ожидаем напарника' : answerPending ? 'Сохраняем…' : 'Готово ✓';
-  $('selection-status').textContent = s.round.type === 'MULTI_SELECT' ? `Выбрано предметов: ${(s.draft || []).length}` : hasAnswer ? 'Ответ выбран' : 'Выбери «Да» или «Нет»';
+  $('selection-status').textContent = s.round.type === 'MULTI_SELECT' ? `Выбрано: ${(s.draft || []).length}${task.selectionCount ? ' / ' + task.selectionCount : ''}` : hasAnswer ? 'Ответ выбран' : 'Выбери «네» или «아니요»';
   $('submission-status').textContent = me.submitted ? 'Твой ответ отправлен. Переход — когда напарник тоже будет готов.' : !partner?.connected ? 'Напарник не в сети. Его место сохранено.' : partner.submitted ? 'Напарник уже готов. Выбери и отправь свой ответ.' : 'Ответ можно менять до нажатия «Готово».';
 }
 function tick() {

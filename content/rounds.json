@@ -3,17 +3,16 @@
     "id": "round-1",
     "title": "Что есть?",
     "type": "MULTI_SELECT",
+    "topicRu": "Предметы",
     "tasks": {
       "A": {
         "id": "r1-a",
         "promptRu": "Что есть?",
-        "targetQuestionKo": "뭐가 있어요?",
-        "suggestedAnswerKo": "책상이 있어요.",
         "options": [
           {
             "id": "desk",
             "labelKo": "책상",
-            "labelRu": "Стол",
+            "labelRu": "Письменный стол",
             "image": "/assets/objects/desk.webp"
           },
           {
@@ -31,13 +30,13 @@
         ],
         "correctAnswer": [
           "desk"
-        ]
+        ],
+        "targetQuestionKo": "뭐가 있어요?",
+        "suggestedAnswerKo": "책상이 있어요."
       },
       "B": {
         "id": "r1-b",
         "promptRu": "Что есть?",
-        "targetQuestionKo": "뭐가 있어요?",
-        "suggestedAnswerKo": "가방이 있어요.",
         "options": [
           {
             "id": "book",
@@ -60,40 +59,771 @@
         ],
         "correctAnswer": [
           "bag"
-        ]
+        ],
+        "targetQuestionKo": "뭐가 있어요?",
+        "suggestedAnswerKo": "가방이 있어요."
       }
     }
   },
   {
     "id": "round-2",
-    "title": "Есть ли предмет?",
-    "type": "YES_NO",
+    "title": "Несколько предметов",
+    "type": "MULTI_SELECT",
+    "topicRu": "Предметы",
     "tasks": {
       "A": {
         "id": "r2-a",
+        "promptRu": "Какие предметы есть?",
+        "options": [
+          {
+            "id": "book",
+            "labelKo": "책",
+            "labelRu": "Книга",
+            "image": "/assets/objects/book.webp"
+          },
+          {
+            "id": "pen",
+            "labelKo": "펜",
+            "labelRu": "Ручка",
+            "image": "/assets/objects/pen.webp"
+          },
+          {
+            "id": "chair",
+            "labelKo": "의자",
+            "labelRu": "Стул",
+            "image": "/assets/objects/chair.webp"
+          },
+          {
+            "id": "apple",
+            "labelKo": "사과",
+            "labelRu": "Яблоко",
+            "image": "/assets/objects/apple.webp"
+          }
+        ],
+        "correctAnswer": [
+          "book",
+          "pen"
+        ],
+        "instructionRu": "Спроси, какие предметы есть. Выбери все предметы, которые назовёт напарник.",
+        "targetQuestionKo": "뭐가 있어요?",
+        "suggestedAnswerKo": "책하고 펜이 있어요."
+      },
+      "B": {
+        "id": "r2-b",
+        "promptRu": "Какие предметы есть?",
+        "options": [
+          {
+            "id": "desk",
+            "labelKo": "책상",
+            "labelRu": "Письменный стол",
+            "image": "/assets/objects/desk.webp"
+          },
+          {
+            "id": "bag",
+            "labelKo": "가방",
+            "labelRu": "Сумка",
+            "image": "/assets/objects/bag.webp"
+          },
+          {
+            "id": "phone",
+            "labelKo": "핸드폰",
+            "labelRu": "Телефон",
+            "image": "/assets/objects/phone.webp"
+          },
+          {
+            "id": "banana",
+            "labelKo": "바나나",
+            "labelRu": "Банан",
+            "image": "/assets/objects/banana.webp"
+          }
+        ],
+        "correctAnswer": [
+          "desk",
+          "phone"
+        ],
+        "instructionRu": "Спроси, какие предметы есть. Выбери все предметы, которые назовёт напарник.",
+        "targetQuestionKo": "뭐가 있어요?",
+        "suggestedAnswerKo": "책상하고 핸드폰이 있어요."
+      }
+    }
+  },
+  {
+    "id": "round-3",
+    "title": "Есть ли предмет?",
+    "type": "YES_NO",
+    "topicRu": "Предметы",
+    "tasks": {
+      "A": {
+        "id": "r3-a",
         "promptRu": "Есть ли книга?",
-        "targetQuestionKo": "책이 있어요?",
-        "suggestedAnswerKo": "아니요, 없어요.",
         "subject": {
           "id": "book",
           "labelKo": "책",
           "labelRu": "Книга",
           "image": "/assets/objects/book.webp"
         },
-        "correctAnswer": "NO"
+        "correctAnswer": "NO",
+        "targetQuestionKo": "책이 있어요?",
+        "suggestedAnswerKo": "아니요, 없어요."
       },
       "B": {
-        "id": "r2-b",
+        "id": "r3-b",
         "promptRu": "Есть ли стул?",
-        "targetQuestionKo": "의자가 있어요?",
-        "suggestedAnswerKo": "네, 있어요.",
         "subject": {
           "id": "chair",
           "labelKo": "의자",
           "labelRu": "Стул",
           "image": "/assets/objects/chair.webp"
         },
-        "correctAnswer": "YES"
+        "correctAnswer": "YES",
+        "targetQuestionKo": "의자가 있어요?",
+        "suggestedAnswerKo": "네, 있어요."
+      }
+    }
+  },
+  {
+    "id": "round-4",
+    "title": "Проверим ещё раз",
+    "type": "YES_NO",
+    "topicRu": "Предметы",
+    "tasks": {
+      "A": {
+        "id": "r4-a",
+        "promptRu": "Есть ли ручка?",
+        "subject": {
+          "id": "pen",
+          "labelKo": "펜",
+          "labelRu": "Ручка",
+          "image": "/assets/objects/pen.webp"
+        },
+        "correctAnswer": "YES",
+        "targetQuestionKo": "펜이 있어요?",
+        "suggestedAnswerKo": "네, 있어요."
+      },
+      "B": {
+        "id": "r4-b",
+        "promptRu": "Есть ли сумка?",
+        "subject": {
+          "id": "bag",
+          "labelKo": "가방",
+          "labelRu": "Сумка",
+          "image": "/assets/objects/bag.webp"
+        },
+        "correctAnswer": "NO",
+        "targetQuestionKo": "가방이 있어요?",
+        "suggestedAnswerKo": "아니요, 없어요."
+      }
+    }
+  },
+  {
+    "id": "round-5",
+    "title": "Что ты делаешь?",
+    "type": "MULTI_SELECT",
+    "topicRu": "Действия",
+    "tasks": {
+      "A": {
+        "id": "r5-a",
+        "promptRu": "Что ты делаешь?",
+        "options": [
+          {
+            "id": "read",
+            "labelKo": "읽다",
+            "labelRu": "Читать",
+            "image": "/assets/actions/read.webp"
+          },
+          {
+            "id": "sleep",
+            "labelKo": "자다",
+            "labelRu": "Спать",
+            "image": "/assets/actions/sleep.webp"
+          },
+          {
+            "id": "eat",
+            "labelKo": "먹다",
+            "labelRu": "Есть",
+            "image": "/assets/actions/eat.webp"
+          }
+        ],
+        "correctAnswer": [
+          "read"
+        ],
+        "instructionRu": "Спроси напарника по-корейски, что он делает. Выбери названное действие.",
+        "targetQuestionKo": "뭐 해요?",
+        "suggestedAnswerKo": "책을 읽어요."
+      },
+      "B": {
+        "id": "r5-b",
+        "promptRu": "Что ты делаешь?",
+        "options": [
+          {
+            "id": "exercise",
+            "labelKo": "운동하다",
+            "labelRu": "Заниматься спортом",
+            "image": "/assets/actions/exercise.webp"
+          },
+          {
+            "id": "drink",
+            "labelKo": "마시다",
+            "labelRu": "Пить",
+            "image": "/assets/actions/drink.webp"
+          },
+          {
+            "id": "study",
+            "labelKo": "공부하다",
+            "labelRu": "Учиться",
+            "image": "/assets/actions/study.webp"
+          }
+        ],
+        "correctAnswer": [
+          "drink"
+        ],
+        "instructionRu": "Спроси напарника по-корейски, что он делает. Выбери названное действие.",
+        "targetQuestionKo": "뭐 해요?",
+        "suggestedAnswerKo": "물을 마셔요."
+      }
+    }
+  },
+  {
+    "id": "round-6",
+    "title": "Вопрос о действии",
+    "type": "YES_NO",
+    "topicRu": "Действия",
+    "tasks": {
+      "A": {
+        "id": "r6-a",
+        "promptRu": "Ты читаешь книгу?",
+        "subject": {
+          "id": "read",
+          "labelKo": "읽다",
+          "labelRu": "Читать",
+          "image": "/assets/actions/read.webp"
+        },
+        "correctAnswer": "YES",
+        "targetQuestionKo": "책을 읽어요?",
+        "suggestedAnswerKo": "네, 읽어요."
+      },
+      "B": {
+        "id": "r6-b",
+        "promptRu": "Ты спишь?",
+        "subject": {
+          "id": "sleep",
+          "labelKo": "자다",
+          "labelRu": "Спать",
+          "image": "/assets/actions/sleep.webp"
+        },
+        "correctAnswer": "NO",
+        "targetQuestionKo": "자요?",
+        "suggestedAnswerKo": "아니요, 안 자요."
+      }
+    }
+  },
+  {
+    "id": "round-7",
+    "title": "Два действия",
+    "type": "MULTI_SELECT",
+    "topicRu": "Действия",
+    "tasks": {
+      "A": {
+        "id": "r7-a",
+        "promptRu": "Какие два действия ты делаешь?",
+        "options": [
+          {
+            "id": "read",
+            "labelKo": "읽다",
+            "labelRu": "Читать",
+            "image": "/assets/actions/read.webp"
+          },
+          {
+            "id": "eat",
+            "labelKo": "먹다",
+            "labelRu": "Есть",
+            "image": "/assets/actions/eat.webp"
+          },
+          {
+            "id": "work",
+            "labelKo": "일하다",
+            "labelRu": "Работать",
+            "image": "/assets/actions/work.webp"
+          },
+          {
+            "id": "sleep",
+            "labelKo": "자다",
+            "labelRu": "Спать",
+            "image": "/assets/actions/sleep.webp"
+          }
+        ],
+        "correctAnswer": [
+          "read",
+          "eat"
+        ],
+        "selectionCount": 2,
+        "instructionRu": "Спроси напарника. Выбери ровно два названных действия. Каждое действие — отдельная картинка.",
+        "targetQuestionKo": "뭐 해요?",
+        "suggestedAnswerKo": "책을 읽어요. 밥을 먹어요."
+      },
+      "B": {
+        "id": "r7-b",
+        "promptRu": "Какие два действия ты делаешь?",
+        "options": [
+          {
+            "id": "meet",
+            "labelKo": "만나다",
+            "labelRu": "Встречаться",
+            "image": "/assets/actions/meet.webp"
+          },
+          {
+            "id": "exercise",
+            "labelKo": "운동하다",
+            "labelRu": "Заниматься спортом",
+            "image": "/assets/actions/exercise.webp"
+          },
+          {
+            "id": "drink",
+            "labelKo": "마시다",
+            "labelRu": "Пить",
+            "image": "/assets/actions/drink.webp"
+          },
+          {
+            "id": "watch",
+            "labelKo": "보다",
+            "labelRu": "Смотреть",
+            "image": "/assets/actions/watch.webp"
+          }
+        ],
+        "correctAnswer": [
+          "meet",
+          "exercise"
+        ],
+        "selectionCount": 2,
+        "instructionRu": "Спроси напарника. Выбери ровно два названных действия. Каждое действие — отдельная картинка.",
+        "targetQuestionKo": "뭐 해요?",
+        "suggestedAnswerKo": "친구를 만나요. 운동해요."
+      }
+    }
+  },
+  {
+    "id": "round-8",
+    "title": "Где находится предмет?",
+    "type": "MULTI_SELECT",
+    "topicRu": "Места",
+    "tasks": {
+      "A": {
+        "id": "r8-a",
+        "promptRu": "Где находится книга?",
+        "options": [
+          {
+            "id": "home",
+            "labelKo": "집",
+            "labelRu": "Дом",
+            "image": "/assets/places/home.webp"
+          },
+          {
+            "id": "school",
+            "labelKo": "학교",
+            "labelRu": "Школа",
+            "image": "/assets/places/school.webp"
+          },
+          {
+            "id": "library",
+            "labelKo": "도서관",
+            "labelRu": "Библиотека",
+            "image": "/assets/places/library.webp"
+          }
+        ],
+        "correctAnswer": [
+          "library"
+        ],
+        "selectionCount": 1,
+        "contextImages": [
+          {
+            "id": "book",
+            "labelKo": "책",
+            "labelRu": "Книга",
+            "image": "/assets/objects/book.webp"
+          }
+        ],
+        "instructionRu": "Предмет показан отдельно. Спроси, где он находится, и выбери одно место.",
+        "targetQuestionKo": "책이 어디에 있어요?",
+        "suggestedAnswerKo": "도서관에 있어요."
+      },
+      "B": {
+        "id": "r8-b",
+        "promptRu": "Где находится сумка?",
+        "options": [
+          {
+            "id": "home",
+            "labelKo": "집",
+            "labelRu": "Дом",
+            "image": "/assets/places/home.webp"
+          },
+          {
+            "id": "restaurant",
+            "labelKo": "식당",
+            "labelRu": "Ресторан",
+            "image": "/assets/places/restaurant.webp"
+          },
+          {
+            "id": "school",
+            "labelKo": "학교",
+            "labelRu": "Школа",
+            "image": "/assets/places/school.webp"
+          }
+        ],
+        "correctAnswer": [
+          "home"
+        ],
+        "selectionCount": 1,
+        "contextImages": [
+          {
+            "id": "bag",
+            "labelKo": "가방",
+            "labelRu": "Сумка",
+            "image": "/assets/objects/bag.webp"
+          }
+        ],
+        "instructionRu": "Предмет показан отдельно. Спроси, где он находится, и выбери одно место.",
+        "targetQuestionKo": "가방이 어디에 있어요?",
+        "suggestedAnswerKo": "집에 있어요."
+      }
+    }
+  },
+  {
+    "id": "round-9",
+    "title": "Есть ли предмет в этом месте?",
+    "type": "YES_NO",
+    "topicRu": "Места",
+    "tasks": {
+      "A": {
+        "id": "r9-a",
+        "promptRu": "Дома есть книга?",
+        "subject": {
+          "id": "book",
+          "labelKo": "책",
+          "labelRu": "Книга",
+          "image": "/assets/objects/book.webp"
+        },
+        "correctAnswer": "NO",
+        "contextImages": [
+          {
+            "id": "home",
+            "labelKo": "집",
+            "labelRu": "Дом",
+            "image": "/assets/places/home.webp"
+          }
+        ],
+        "targetQuestionKo": "집에 책이 있어요?",
+        "suggestedAnswerKo": "아니요, 없어요."
+      },
+      "B": {
+        "id": "r9-b",
+        "promptRu": "В школе есть ручка?",
+        "subject": {
+          "id": "pen",
+          "labelKo": "펜",
+          "labelRu": "Ручка",
+          "image": "/assets/objects/pen.webp"
+        },
+        "correctAnswer": "YES",
+        "contextImages": [
+          {
+            "id": "school",
+            "labelKo": "학교",
+            "labelRu": "Школа",
+            "image": "/assets/places/school.webp"
+          }
+        ],
+        "targetQuestionKo": "학교에 펜이 있어요?",
+        "suggestedAnswerKo": "네, 있어요."
+      }
+    }
+  },
+  {
+    "id": "round-10",
+    "title": "Предмет именно здесь?",
+    "type": "YES_NO",
+    "topicRu": "Места",
+    "tasks": {
+      "A": {
+        "id": "r10-a",
+        "promptRu": "Книга находится в школе?",
+        "subject": {
+          "id": "book",
+          "labelKo": "책",
+          "labelRu": "Книга",
+          "image": "/assets/objects/book.webp"
+        },
+        "correctAnswer": "YES",
+        "contextImages": [
+          {
+            "id": "school",
+            "labelKo": "학교",
+            "labelRu": "Школа",
+            "image": "/assets/places/school.webp"
+          }
+        ],
+        "targetQuestionKo": "책이 학교에 있어요?",
+        "suggestedAnswerKo": "네, 학교에 있어요."
+      },
+      "B": {
+        "id": "r10-b",
+        "promptRu": "Сумка находится дома?",
+        "subject": {
+          "id": "bag",
+          "labelKo": "가방",
+          "labelRu": "Сумка",
+          "image": "/assets/objects/bag.webp"
+        },
+        "correctAnswer": "NO",
+        "contextImages": [
+          {
+            "id": "home",
+            "labelKo": "집",
+            "labelRu": "Дом",
+            "image": "/assets/places/home.webp"
+          }
+        ],
+        "targetQuestionKo": "가방이 집에 있어요?",
+        "suggestedAnswerKo": "아니요, 집에 없어요."
+      }
+    }
+  },
+  {
+    "id": "round-11",
+    "title": "Куда ты идёшь?",
+    "type": "MULTI_SELECT",
+    "topicRu": "Движение",
+    "tasks": {
+      "A": {
+        "id": "r11-a",
+        "promptRu": "Куда ты идёшь?",
+        "options": [
+          {
+            "id": "school",
+            "labelKo": "학교",
+            "labelRu": "Школа",
+            "image": "/assets/places/school.webp"
+          },
+          {
+            "id": "park",
+            "labelKo": "공원",
+            "labelRu": "Парк",
+            "image": "/assets/places/park.webp"
+          },
+          {
+            "id": "hospital",
+            "labelKo": "병원",
+            "labelRu": "Больница",
+            "image": "/assets/places/hospital.webp"
+          }
+        ],
+        "correctAnswer": [
+          "park"
+        ],
+        "selectionCount": 1,
+        "instructionRu": "Спроси по-корейски о направлении движения. Выбери одно место, которое назовёт напарник.",
+        "targetQuestionKo": "어디에 가요?",
+        "suggestedAnswerKo": "공원에 가요."
+      },
+      "B": {
+        "id": "r11-b",
+        "promptRu": "Куда ты приходишь?",
+        "options": [
+          {
+            "id": "store",
+            "labelKo": "가게",
+            "labelRu": "Магазин",
+            "image": "/assets/places/store.webp"
+          },
+          {
+            "id": "library",
+            "labelKo": "도서관",
+            "labelRu": "Библиотека",
+            "image": "/assets/places/library.webp"
+          },
+          {
+            "id": "restaurant",
+            "labelKo": "식당",
+            "labelRu": "Ресторан",
+            "image": "/assets/places/restaurant.webp"
+          }
+        ],
+        "correctAnswer": [
+          "store"
+        ],
+        "selectionCount": 1,
+        "instructionRu": "Спроси по-корейски, куда приходит напарник. Выбери одно названное место.",
+        "targetQuestionKo": "어디에 와요?",
+        "suggestedAnswerKo": "가게에 와요."
+      }
+    }
+  },
+  {
+    "id": "round-12",
+    "title": "Вопрос о направлении",
+    "type": "YES_NO",
+    "topicRu": "Движение",
+    "tasks": {
+      "A": {
+        "id": "r12-a",
+        "promptRu": "Ты идёшь в больницу?",
+        "subject": {
+          "id": "hospital",
+          "labelKo": "병원",
+          "labelRu": "Больница",
+          "image": "/assets/places/hospital.webp"
+        },
+        "correctAnswer": "NO",
+        "targetQuestionKo": "병원에 가요?",
+        "suggestedAnswerKo": "아니요, 안 가요."
+      },
+      "B": {
+        "id": "r12-b",
+        "promptRu": "Ты приходишь в школу?",
+        "subject": {
+          "id": "school",
+          "labelKo": "학교",
+          "labelRu": "Школа",
+          "image": "/assets/places/school.webp"
+        },
+        "correctAnswer": "YES",
+        "targetQuestionKo": "학교에 와요?",
+        "suggestedAnswerKo": "네, 학교에 와요."
+      }
+    }
+  },
+  {
+    "id": "round-13",
+    "title": "Где ты это делаешь?",
+    "type": "MULTI_SELECT",
+    "topicRu": "Действие и место",
+    "tasks": {
+      "A": {
+        "id": "r13-a",
+        "promptRu": "Где ты читаешь?",
+        "options": [
+          {
+            "id": "home",
+            "labelKo": "집",
+            "labelRu": "Дом",
+            "image": "/assets/places/home.webp"
+          },
+          {
+            "id": "library",
+            "labelKo": "도서관",
+            "labelRu": "Библиотека",
+            "image": "/assets/places/library.webp"
+          },
+          {
+            "id": "school",
+            "labelKo": "학교",
+            "labelRu": "Школа",
+            "image": "/assets/places/school.webp"
+          }
+        ],
+        "correctAnswer": [
+          "library"
+        ],
+        "selectionCount": 1,
+        "contextImages": [
+          {
+            "id": "read",
+            "labelKo": "읽다",
+            "labelRu": "Читать",
+            "image": "/assets/actions/read.webp"
+          }
+        ],
+        "instructionRu": "Действие показано отдельно. Спроси, где напарник это делает, и выбери одно место.",
+        "targetQuestionKo": "어디에서 책을 읽어요?",
+        "suggestedAnswerKo": "도서관에서 읽어요."
+      },
+      "B": {
+        "id": "r13-b",
+        "promptRu": "Где ты ешь?",
+        "options": [
+          {
+            "id": "home",
+            "labelKo": "집",
+            "labelRu": "Дом",
+            "image": "/assets/places/home.webp"
+          },
+          {
+            "id": "restaurant",
+            "labelKo": "식당",
+            "labelRu": "Ресторан",
+            "image": "/assets/places/restaurant.webp"
+          },
+          {
+            "id": "park",
+            "labelKo": "공원",
+            "labelRu": "Парк",
+            "image": "/assets/places/park.webp"
+          }
+        ],
+        "correctAnswer": [
+          "home"
+        ],
+        "selectionCount": 1,
+        "contextImages": [
+          {
+            "id": "eat",
+            "labelKo": "먹다",
+            "labelRu": "Есть",
+            "image": "/assets/actions/eat.webp"
+          }
+        ],
+        "instructionRu": "Действие показано отдельно. Спроси, где напарник это делает, и выбери одно место.",
+        "targetQuestionKo": "어디에서 밥을 먹어요?",
+        "suggestedAnswerKo": "집에서 먹어요."
+      }
+    }
+  },
+  {
+    "id": "round-14",
+    "title": "Действие в определённом месте",
+    "type": "YES_NO",
+    "topicRu": "Действие и место",
+    "tasks": {
+      "A": {
+        "id": "r14-a",
+        "promptRu": "Ты читаешь в библиотеке?",
+        "subject": {
+          "id": "read",
+          "labelKo": "읽다",
+          "labelRu": "Читать",
+          "image": "/assets/actions/read.webp"
+        },
+        "correctAnswer": "YES",
+        "contextImages": [
+          {
+            "id": "library",
+            "labelKo": "도서관",
+            "labelRu": "Библиотека",
+            "image": "/assets/places/library.webp"
+          }
+        ],
+        "targetQuestionKo": "도서관에서 책을 읽어요?",
+        "suggestedAnswerKo": "네, 도서관에서 읽어요."
+      },
+      "B": {
+        "id": "r14-b",
+        "promptRu": "Ты ешь в ресторане?",
+        "subject": {
+          "id": "eat",
+          "labelKo": "먹다",
+          "labelRu": "Есть",
+          "image": "/assets/actions/eat.webp"
+        },
+        "correctAnswer": "NO",
+        "contextImages": [
+          {
+            "id": "restaurant",
+            "labelKo": "식당",
+            "labelRu": "Ресторан",
+            "image": "/assets/places/restaurant.webp"
+          }
+        ],
+        "targetQuestionKo": "식당에서 밥을 먹어요?",
+        "suggestedAnswerKo": "아니요, 식당에서 안 먹어요."
       }
     }
   }

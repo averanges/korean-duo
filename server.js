@@ -22,11 +22,16 @@ function validateRounds(rounds) {
     for (const seat of SEATS) {
       const task = round.tasks?.[seat];
       if (!task || !validId(task.id) || typeof task.promptRu !== 'string' || !task.promptRu.trim()) throw new Error('Invalid task');
+      if (task.contextImages !== undefined) {
+        if (!Array.isArray(task.contextImages) || task.contextImages.length > 2) throw new Error('Invalid task context');
+        task.contextImages.forEach(checkPicture);
+      }
       if (round.type === 'MULTI_SELECT') {
         if (!Array.isArray(task.options) || !task.options.length) throw new Error('Missing options');
         task.options.forEach(checkPicture);
         const optionIds = task.options.map(o => o.id);
         if (new Set(optionIds).size !== optionIds.length || !Array.isArray(task.correctAnswer) || !task.correctAnswer.length || new Set(task.correctAnswer).size !== task.correctAnswer.length || !task.correctAnswer.every(id => optionIds.includes(id))) throw new Error('Invalid multi-select answer');
+        if (task.selectionCount !== undefined && (!Number.isInteger(task.selectionCount) || task.selectionCount < 1 || task.selectionCount > optionIds.length || task.correctAnswer.length !== task.selectionCount)) throw new Error('Invalid selection count');
       } else {
         checkPicture(task.subject);
         if (!['YES', 'NO'].includes(task.correctAnswer)) throw new Error('Invalid yes/no answer');
@@ -41,7 +46,7 @@ function createGameServer({ rounds = loadRounds(path.join(__dirname, 'content/ro
   validateRounds(rounds);
   const app = express();
   app.disable('x-powered-by');
-  app.get('/health', (_req, res) => res.json({ ok: true, version: '2.0.0' }));
+  app.get('/health', (_req, res) => res.json({ ok: true, version: '2.1.0' }));
   app.use(express.static(path.join(__dirname, 'public')));
   const server = http.createServer(app);
   // Preserve the deployed CLIENT_ORIGIN policy and the Render/Pages split.
@@ -52,6 +57,9 @@ function createGameServer({ rounds = loadRounds(path.join(__dirname, 'content/ro
   const picture = p => ({ id: p.id, labelKo: p.labelKo, labelRu: p.labelRu, image: p.image });
   function publicTask(task, type, known) {
     const result = { id: task.id, promptRu: task.promptRu };
+    if (task.instructionRu) result.instructionRu = task.instructionRu;
+    if (task.contextImages?.length) result.contextImages = task.contextImages.map(picture);
+    if (task.selectionCount !== undefined) result.selectionCount = task.selectionCount;
     if (type === 'MULTI_SELECT') result.options = task.options.map(picture);
     else result.subject = picture(task.subject);
     // Teacher-only Korean questions/answers and arbitrary content fields never cross this boundary.
@@ -72,7 +80,7 @@ function createGameServer({ rounds = loadRounds(path.join(__dirname, 'content/ro
       players: room.players.map((p, i) => ({ seat: i, connected: connected(p), submitted: p.submitted })),
       draft: room.phase === 'playing' ? room.players[seat].draft : null,
       round: room.phase === 'playing' ? {
-        id: round.id, title: round.title, type: round.type,
+        id: round.id, title: round.title, type: round.type, topicRu: round.topicRu,
         ownTask: publicTask(round.tasks[SEATS[seat]], round.type, false),
         partnerTask: publicTask(round.tasks[SEATS[1 - seat]], round.type, true)
       } : null,
@@ -83,6 +91,7 @@ function createGameServer({ rounds = loadRounds(path.join(__dirname, 'content/ro
   function validAnswer(round, task, answer, allowEmpty) {
     if (round.type === 'YES_NO') return ['YES', 'NO'].includes(answer);
     return Array.isArray(answer) && (allowEmpty || answer.length > 0) && answer.length <= task.options.length &&
+      (task.selectionCount === undefined || (allowEmpty ? answer.length <= task.selectionCount : answer.length === task.selectionCount)) &&
       new Set(answer).size === answer.length && answer.every(id => typeof id === 'string' && task.options.some(o => o.id === id));
   }
   function beginRound(room, index) {

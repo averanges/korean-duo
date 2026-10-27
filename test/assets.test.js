@@ -14,9 +14,9 @@ test('approved sheet library: 27 square WebPs, 14 plans, row four excluded', () 
   const verbs = Object.values(manifest.assets).filter(a => a.category === 'actions').map(a => a.labelKo);
   assert.deepEqual(verbs, ['먹다','공부하다','마시다','만나다','자다','운동하다','일하다','사다','보다','읽다','배우다']);
 });
-test('active two-round exercise consumes approved object assets without changing multiplayer tasks', () => {
+test('all fourteen rounds consume only approved assets', () => {
   const rounds = JSON.parse(fs.readFileSync(path.join(__dirname, '../content/rounds.json'), 'utf8'));
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/assets/manifest.json'), 'utf8'));
-  assert.equal(rounds.length, 2);
-  for (const round of rounds) for (const task of Object.values(round.tasks)) for (const item of task.options || [task.subject]) assert.equal(item.image, manifest.assets[item.id].path);
+  assert.equal(rounds.length, 14);
+  for (const round of rounds) for (const task of Object.values(round.tasks)) for (const item of [...(task.options || [task.subject]), ...(task.contextImages || [])]) assert.equal(item.image, manifest.assets[item.id].path);
 });

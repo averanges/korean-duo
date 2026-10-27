@@ -4,13 +4,15 @@ const { io } = require('socket.io-client');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createGameServer, loadRounds, validateRounds } = require('../server');
-const rounds = loadRounds(path.join(__dirname, '../content/rounds.json'));
+const course = loadRounds(path.join(__dirname, '../content/rounds.json'));
+// A two-round fixture isolates transport/timer tests; full production course is tested below.
+const rounds = [course[0], course[2]];
 function event(socket, name) {
   return new Promise((resolve, reject) => { const timeout = setTimeout(() => reject(new Error('Timeout: ' + name)), 4000); socket.once(name, data => { clearTimeout(timeout); resolve(data); }); });
 }
 const emit = (socket, name, data) => new Promise((resolve, reject) => socket.timeout(3000).emit(name, data, (error, response) => error ? reject(error) : resolve(response)));
 async function setup(t, options = {}) {
-  const game = createGameServer(options);
+  const game = createGameServer({ rounds, ...options });
   await new Promise(resolve => game.server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${game.server.address().port}`;
   const clients = [];
@@ -182,11 +184,83 @@ test('Pages is synchronized, keeps working Render URL, and contains no answer ke
   }
   assert(!fs.existsSync(path.join(__dirname,'../docs/content')));
 });
-test('content has only the two specified rounds and validates answer types and unique option IDs', () => {
-  assert.equal(rounds.length, 2); assert.deepEqual(rounds.map(r => r.type), ['MULTI_SELECT','YES_NO']);
+test('course has 14 rounds and validates supported answer types and unique option IDs', () => {
+  assert.equal(course.length, 14); assert.deepEqual(rounds.map(r => r.type), ['MULTI_SELECT','YES_NO']);
   assert.deepEqual(rounds[0].tasks.A.correctAnswer, ['desk']); assert.deepEqual(rounds[0].tasks.B.correctAnswer, ['bag']);
   assert.equal(rounds[1].tasks.A.correctAnswer, 'NO'); assert.equal(rounds[1].tasks.B.correctAnswer, 'YES');
   const bad = structuredClone(rounds); bad[0].tasks.A.options.push(bad[0].tasks.A.options[0]);
   assert.throws(() => validateRounds(bad));
   const multi = structuredClone(rounds); multi[0].tasks.A.correctAnswer = ['desk','chair']; assert.doesNotThrow(() => validateRounds(multi));
+});
+test('full fourteen-round course: private views, independent pairs, exact choices, automatic transitions and final totals', async t => {
+  const { a, b, command, answer, sync } = await setup(t, { rounds: course });
+  await command(a, 'start');
+  const instances = new Set();
+  for (let index = 0; index < course.length; index++) {
+    const round = course[index];
+    const sa = await sync(a), sb = await sync(b);
+    assert.equal(sa.roundCount, 14); assert.equal(sa.roundIndex, index); assert.equal(sb.roundIndex, index);
+    assert.equal(sa.roundInstance, sb.roundInstance); assert(!instances.has(sa.roundInstance)); instances.add(sa.roundInstance);
+    assert.equal(sa.round.type, round.type); assert.equal(sb.round.type, round.type); assert.equal(sa.deadline, null);
+    for (const [state, key, other] of [[sa,'A','B'], [sb,'B','A']]) {
+      assert.equal(state.round.ownTask.id, round.tasks[key].id);
+      assert(!('correctAnswer' in state.round.ownTask));
+      assert.deepEqual(state.round.partnerTask.correctAnswer, round.tasks[other].correctAnswer);
+      assert(!JSON.stringify(state).includes('targetQuestionKo')); assert(!JSON.stringify(state).includes('suggestedAnswerKo'));
+      assert.equal(state.completion, null);
+      assert.deepEqual((state.round.ownTask.contextImages || []).map(i => i.id), (round.tasks[key].contextImages || []).map(i => i.id));
+    }
+    if (index === 6) {
+      const options = sa.round.ownTask.options;
+      assert.equal((await answer(a, [options[0].id])).ok, true);
+      assert.equal((await command(a, 'submit')).ok, false);
+      assert.equal((await answer(a, options.slice(0,3).map(o => o.id))).ok, false);
+      assert.equal(sa.round.ownTask.selectionCount, 2);
+      assert.equal(sa.round.ownTask.options.length, 4);
+    }
+    if ([7,10,12].includes(index)) {
+      assert.equal(sa.round.ownTask.selectionCount, 1);
+      assert.equal((await answer(a, sa.round.ownTask.options.slice(0,2).map(o=>o.id))).ok, false);
+    }
+    for (const [client,key] of [[a,'A'],[b,'B']]) {
+      const correct = round.tasks[key].correctAnswer;
+      assert.equal((await answer(client, Array.isArray(correct) ? [...correct].reverse() : correct)).ok, true);
+    }
+    assert.equal((await command(a, 'submit')).ok, true);
+    assert.equal((await sync(a)).roundIndex, index);
+    assert.equal((await command(b, 'submit')).ok, true);
+    const next = await sync(a);
+    assert.equal(next.phase, index === 13 ? 'completed' : 'playing');
+    assert.equal((await command(a, 'submit', { roundId: round.id, roundInstance: sa.roundInstance })).ok, false);
+  }
+  const done = await sync(a), doneB = await sync(b);
+  assert.deepEqual(done.completion, doneB.completion);
+  assert.equal(done.completion.roundsCompleted, 14); assert.deepEqual(done.completion.players.map(p=>p.correct), [14,14]);
+  assert.equal(done.round, null); assert.equal(done.draft, null); assert(!JSON.stringify(done).includes('correctAnswer'));
+  await command(a, 'restart'); const fresh = await sync(a);
+  assert.equal(fresh.roundIndex, 0); assert.deepEqual(fresh.draft, []); assert.equal(fresh.completion, null);
+});
+test('full course timeout advances all fourteen rounds without resetting the timer setting', async t => {
+  let time = 100000;
+  const { a, b, sync, command, answer } = await setup(t, { rounds: course, now: () => time });
+  await command(a, 'configure', { timer: { enabled: true, durationSeconds: 45 } });
+  await command(a, 'start');
+  for (let index = 0; index < course.length; index++) {
+    const sa = await sync(a); await sync(b);
+    assert.equal(sa.roundIndex, index); assert.equal(sa.timer.durationSeconds, 45);
+    if (index === 0) await answer(a, ['desk']);
+    time = sa.deadline;
+    assert.equal((await command(a, 'submit')).ok, false);
+    const after = await sync(b);
+    if (index < 13) { assert.equal(after.roundIndex, index + 1); assert.equal(after.deadline, time + 45000); }
+  }
+  const done = await sync(a);
+  assert.equal(done.phase, 'completed'); assert.equal(done.completion.timedOutRounds, 14);
+  assert.deepEqual(done.completion.players.map(p=>p.correct), [1,0]);
+});
+test('context validation and two-action cardinality reject malformed content', () => {
+  const bad = structuredClone(course); bad[8].tasks.A.contextImages[0].image = '/content/rounds.json';
+  assert.throws(() => validateRounds(bad));
+  const badCount = structuredClone(course); badCount[6].tasks.A.selectionCount = 3;
+  assert.throws(() => validateRounds(badCount));
 });

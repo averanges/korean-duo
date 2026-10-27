@@ -1,37 +1,11 @@
-# Future content architecture — not implemented levels
+# Расширение после MVP 2.0
 
-The shipped `rounds.json` contains only the approved first round. Append rounds to that array when content is ready. The header, progress dots, duration, carousel action count, answer completion gate, scoring totals, and host Next control derive from content.
+В `rounds.json` ровно два действующих раунда. Не добавляйте остальные, пока не получены их правила и ключи.
 
-| Future round | Content direction | Existing fields |
-| --- | --- | --- |
-| 2 | More simple actions | New IDs, images, labels and statuses |
-| 3 | Actions in specific places | `metadata.location` |
-| 4 | Weekdays and dates | `metadata.day`, `metadata.date` |
-| 5 | Quantities and several actions in a scene | `metadata.quantity`, `sceneId`, repeated scene image |
+Публичная карта иллюстраций для 14 запланированных раундов — это описание ресурсов и композиций, а не ответы и не исполняемый курс. Плановый раунд 1 соответствует действующему MULTI_SELECT; плановый раунд 3 (книга/стул, YES_NO) соответствует действующему второму раунду. Нумерации плана и текущего двухраундового MVP намеренно различаются.
 
-Each action is an independently answerable item. To describe multiple actions within one illustration, give multiple action records the same `sceneId` and `image`, with unique action IDs and vocabulary/context describing the intended target. Example:
+`MULTI_SELECT` уже поддерживает несколько верных ID, точное сравнение множеств и снятие выбора. `YES_NO` допускает только одно строковое значение. Дополнительные раунды этих типов добавляются данными. Новый тип требует явного серверного валидатора и отдельного компонента; редактор курсов не реализован.
 
-```json
-[
-  {
-    "id": "park-run",
-    "sceneId": "park-monday",
-    "label": "달리다",
-    "image": "/assets/park.webp",
-    "status": "REQUIRED",
-    "metadata": { "location": "공원에서", "day": "월요일" }
-  },
-  {
-    "id": "park-drink",
-    "sceneId": "park-monday",
-    "label": "물을 마시다",
-    "image": "/assets/park.webp",
-    "status": "FORBIDDEN",
-    "metadata": { "quantity": "물 두 잔" }
-  }
-]
-```
+В будущих заданиях предмет/действие и варианты места должны оставаться отдельными изображениями. Не встраивайте целевой предмет в верное место на экране спрашивающего. Для пары действий показывайте две отдельные иллюстрации. Направление движения задаёт текст задания, а не подсветка места или скрытая подсказка в картинке.
 
-This is a schema example, not a playable asset. Current UI shows each answerable action on its own carousel page. A later UI can group pages by `sceneId` or add scene hotspots without changing room management or action-ID scoring. All metadata is public; keep solutions only in `status`.
-
-For additional grammar, retain action IDs and server filtering but introduce a round-level answer-type definition, valid answer values and localized choice labels. Extend the server validator/scorer and choice renderer together. The current binary grammar labels are intentionally fixed for this MVP; arbitrary grammar types are not yet supported.
+В публичном манифесте — только идентификаторы, пути, словарь и план использования. Ключи остаются в `content/rounds.json`; вопросы/образцы на корейском — в закрытых teacher-полях. Не копируйте папку `content` в `docs`.

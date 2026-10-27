@@ -1,9 +1,9 @@
 {
   "name": "korean-duo",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Server-authoritative cooperative Korean grammar practice",
-  "scripts": { "start": "node server.js", "test": "node --test test/*.test.js" },
+  "description": "Cooperative Korean question and answer practice",
+  "scripts": { "start": "node server.js", "sync:pages": "node scripts/sync-pages.js", "preview:pages": "node scripts/preview-pages.js", "check:assets": "node scripts/check-assets.js", "test": "node --test test/*.test.js" },
   "engines": { "node": ">=20" },
   "dependencies": { "express": "^4.21.2", "socket.io": "^4.8.1" },
   "devDependencies": { "socket.io-client": "^4.8.1" }

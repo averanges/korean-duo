@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "format": "webp",
+  "width": 512,
+  "height": 512,
+  "source": "user-approved-sheet-rows-1-3",
+  "assets": {
+    "desk": {
+      "category": "objects",
+      "labelKo": "책상",
+      "labelRu": "Письменный стол",
+      "path": "/assets/objects/desk.webp"
+    },
+    "chair": {
+      "category": "objects",
+      "labelKo": "의자",
+      "labelRu": "Стул",
+      "path": "/assets/objects/chair.webp"
+    },
+    "pen": {
+      "category": "objects",
+      "labelKo": "펜",
+      "labelRu": "Ручка",
+      "path": "/assets/objects/pen.webp"
+    },
+    "book": {
+      "category": "objects",
+      "labelKo": "책",
+      "labelRu": "Книга",
+      "path": "/assets/objects/book.webp"
+    },
+    "bag": {
+      "category": "objects",
+      "labelKo": "가방",
+      "labelRu": "Сумка",
+      "path": "/assets/objects/bag.webp"
+    },
+    "apple": {
+      "category": "objects",
+      "labelKo": "사과",
+      "labelRu": "Яблоко",
+      "path": "/assets/objects/apple.webp"
+    },
+    "phone": {
+      "category": "objects",
+      "labelKo": "핸드폰",
+      "labelRu": "Телефон",
+      "path": "/assets/objects/phone.webp"
+    },
+    "banana": {
+      "category": "objects",
+      "labelKo": "바나나",
+      "labelRu": "Банан",
+      "path": "/assets/objects/banana.webp"
+    },
+    "eat": {
+      "category": "actions",
+      "labelKo": "먹다",
+      "labelRu": "Есть",
+      "path": "/assets/actions/eat.webp"
+    },
+    "study": {
+      "category": "actions",
+      "labelKo": "공부하다",
+      "labelRu": "Учиться",
+      "path": "/assets/actions/study.webp"
+    },
+    "drink": {
+      "category": "actions",
+      "labelKo": "마시다",
+      "labelRu": "Пить",
+      "path": "/assets/actions/drink.webp"
+    },
+    "meet": {
+      "category": "actions",
+      "labelKo": "만나다",
+      "labelRu": "Встречаться",
+      "path": "/assets/actions/meet.webp"
+    },
+    "sleep": {
+      "category": "actions",
+      "labelKo": "자다",
+      "labelRu": "Спать",
+      "path": "/assets/actions/sleep.webp"
+    },
+    "exercise": {
+      "category": "actions",
+      "labelKo": "운동하다",
+      "labelRu": "Заниматься спортом",
+      "path": "/assets/actions/exercise.webp"
+    },
+    "work": {
+      "category": "actions",
+      "labelKo": "일하다",
+      "labelRu": "Работать",
+      "path": "/assets/actions/work.webp"
+    },
+    "buy": {
+      "category": "actions",
+      "labelKo": "사다",
+      "labelRu": "Покупать",
+      "path": "/assets/actions/buy.webp"
+    },
+    "watch": {
+      "category": "actions",
+      "labelKo": "보다",
+      "labelRu": "Смотреть",
+      "path": "/assets/actions/watch.webp"
+    },
+    "read": {
+      "category": "actions",
+      "labelKo": "읽다",
+      "labelRu": "Читать",
+      "path": "/assets/actions/read.webp"
+    },
+    "learn": {
+      "category": "actions",
+      "labelKo": "배우다",
+      "labelRu": "Изучать",
+      "path": "/assets/actions/learn.webp"
+    },
+    "home": {
+      "category": "places",
+      "labelKo": "집",
+      "labelRu": "Дом",
+      "path": "/assets/places/home.webp"
+    },
+    "school": {
+      "category": "places",
+      "labelKo": "학교",
+      "labelRu": "Школа",
+      "path": "/assets/places/school.webp"
+    },
+    "library": {
+      "category": "places",
+      "labelKo": "도서관",
+      "labelRu": "Библиотека",
+      "path": "/assets/places/library.webp"
+    },
+    "park": {
+      "category": "places",
+      "labelKo": "공원",
+      "labelRu": "Парк",
+      "path": "/assets/places/park.webp"
+    },
+    "hospital": {
+      "category": "places",
+      "labelKo": "병원",
+      "labelRu": "Больница",
+      "path": "/assets/places/hospital.webp"
+    },
+    "store": {
+      "category": "places",
+      "labelKo": "가게",
+      "labelRu": "Магазин",
+      "path": "/assets/places/store.webp"
+    },
+    "restaurant": {
+      "category": "places",
+      "labelKo": "식당",
+      "labelRu": "Ресторан",
+      "path": "/assets/places/restaurant.webp"
+    },
+    "mart": {
+      "category": "places",
+      "labelKo": "마트",
+      "labelRu": "Супермаркет",
+      "path": "/assets/places/mart.webp"
+    }
+  },
+  "plannedRounds": [
+    {
+      "number": 1,
+      "type": "object-candidates",
+      "A": {
+        "candidates": [
+          "asset:desk",
+          "asset:chair",
+          "asset:pen"
+        ]
+      },
+      "B": {
+        "candidates": [
+          "asset:book",
+          "asset:bag",
+          "asset:apple"
+        ]
+      }
+    },
+    {
+      "number": 2,
+      "type": "object-candidates",
+      "A": {
+        "candidates": [
+          "asset:book",
+          "asset:pen",
+          "asset:chair",
+          "asset:apple"
+        ]
+      },
+      "B": {
+        "candidates": [
+          "asset:desk",
+          "asset:bag",
+          "asset:phone",
+          "asset:banana"
+        ]
+      }
+    },
+    {
+      "number": 3,
+      "type": "yes-no",
+      "A": {
+        "subject": "asset:book"
+      },
+      "B": {
+        "subject": "asset:chair"
+      }
+    },
+    {
+      "number": 4,
+      "type": "yes-no",
+      "A": {
+        "subject": "asset:pen"
+      },
+      "B": {
+        "subject": "asset:bag"
+      }
+    },
+    {
+      "number": 5,
+      "type": "action-candidates",
+      "A": {
+        "candidates": [
+          "asset:read",
+          "asset:sleep",
+          "asset:eat"
+        ]
+      },
+      "B": {
+        "candidates": [
+          "asset:exercise",
+          "asset:drink",
+          "asset:study"
+        ]
+      }
+    },
+    {
+      "number": 6,
+      "type": "yes-no",
+      "A": {
+        "subject": "asset:read"
+      },
+      "B": {
+        "subject": "asset:sleep"
+      }
+    },
+    {
+      "number": 7,
+      "type": "two-separate-action-images",
+      "A": {
+        "candidates": [
+          "asset:read",
+          "asset:eat",
+          "asset:work",
+          "asset:sleep"
+        ]
+      },
+      "B": {
+        "candidates": [
+          "asset:meet",
+          "asset:exercise",
+          "asset:drink",
+          "asset:watch"
+        ]
+      }
+    },
+    {
+      "number": 8,
+      "type": "target-separate-from-locations",
+      "A": {
+        "target": "asset:book",
+        "candidates": [
+          "asset:home",
+          "asset:school",
+          "asset:library"
+        ]
+      },
+      "B": {
+        "target": "asset:bag",
+        "candidates": [
+          "asset:home",
+          "asset:restaurant",
+          "asset:school"
+        ]
+      }
+    },
+    {
+      "number": 9,
+      "type": "yes-no-separate-pair",
+      "A": {
+        "images": [
+          "asset:book",
+          "asset:home"
+        ]
+      },
+      "B": {
+        "images": [
+          "asset:pen",
+          "asset:school"
+        ]
+      }
+    },
+    {
+      "number": 10,
+      "type": "yes-no-separate-pair",
+      "A": {
+        "images": [
+          "asset:book",
+          "asset:school"
+        ]
+      },
+      "B": {
+        "images": [
+          "asset:bag",
+          "asset:home"
+        ]
+      }
+    },
+    {
+      "number": 11,
+      "type": "destinations-prompt-defines-movement",
+      "A": {
+        "candidates": [
+          "asset:school",
+          "asset:park",
+          "asset:hospital"
+        ]
+      },
+      "B": {
+        "candidates": [
+          "asset:store",
+          "asset:library",
+          "asset:restaurant"
+        ]
+      }
+    },
+    {
+      "number": 12,
+      "type": "movement-yes-no",
+      "A": {
+        "subject": "asset:hospital"
+      },
+      "B": {
+        "subject": "asset:school"
+      }
+    },
+    {
+      "number": 13,
+      "type": "target-separate-from-locations",
+      "A": {
+        "target": "asset:read",
+        "candidates": [
+          "asset:home",
+          "asset:library",
+          "asset:school"
+        ]
+      },
+      "B": {
+        "target": "asset:eat",
+        "candidates": [
+          "asset:home",
+          "asset:restaurant",
+          "asset:park"
+        ]
+      }
+    },
+    {
+      "number": 14,
+      "type": "yes-no-separate-pair",
+      "A": {
+        "images": [
+          "asset:read",
+          "asset:library"
+        ]
+      },
+      "B": {
+        "images": [
+          "asset:eat",
+          "asset:restaurant"
+        ]
+      }
+    }
+  ],
+  "missingAssets": [],
+  "movementVocabulary": [
+    {
+      "labelKo": "가다",
+      "labelRu": "Идти"
+    },
+    {
+      "labelKo": "오다",
+      "labelRu": "Приходить"
+    }
+  ]
+}

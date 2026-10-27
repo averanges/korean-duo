@@ -1,120 +1,192 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { io } = require('socket.io-client');
-const { createGameServer, loadRounds } = require('../server');
+const fs = require('node:fs');
 const path = require('node:path');
+const { createGameServer, loadRounds, validateRounds } = require('../server');
 const rounds = loadRounds(path.join(__dirname, '../content/rounds.json'));
-const event = (socket, name) => new Promise((resolve, reject) => { const t = setTimeout(() => reject(new Error('Timed out: ' + name)), 4000); socket.once(name, data => { clearTimeout(t); resolve(data); }); });
-const emit = (s, name, data) => new Promise((resolve, reject) => s.timeout(3000).emit(name, data, (err, response) => err ? reject(err) : resolve(response)));
-async function setup(t, options) {
+function event(socket, name) {
+  return new Promise((resolve, reject) => { const timeout = setTimeout(() => reject(new Error('Timeout: ' + name)), 4000); socket.once(name, data => { clearTimeout(timeout); resolve(data); }); });
+}
+const emit = (socket, name, data) => new Promise((resolve, reject) => socket.timeout(3000).emit(name, data, (error, response) => error ? reject(error) : resolve(response)));
+async function setup(t, options = {}) {
   const game = createGameServer(options);
   await new Promise(resolve => game.server.listen(0, '127.0.0.1', resolve));
+  const origin = `http://127.0.0.1:${game.server.address().port}`;
   const clients = [];
   t.after(async () => { clients.forEach(c => c.disconnect()); await game.close(); });
-  async function client() {
-    const c = io(`http://127.0.0.1:${game.server.address().port}`, { forceNew: true, reconnection: false });
-    clients.push(c); c.on('state', s => { c.latest = s; }); await event(c, 'connect'); return c;
+  async function client(transports) {
+    const socket = io(origin, { forceNew: true, reconnection: false, ...(transports ? { transports } : {}) });
+    clients.push(socket); socket.states = []; socket.on('state', s => { socket.latest = s; socket.states.push(s); });
+    await event(socket, 'connect'); return socket;
   }
-  const a = await client(); const b = await client();
+  const a = await client(), b = await client();
   const ca = await emit(a, 'enter', { mode: 'create' });
-  const cb = await emit(b, 'enter', { mode: 'join', code: ca.code });
-  const sync = async c => { const p = event(c, 'state'); c.emit('sync'); return p; };
-  const command = (c, type, extra) => emit(c, 'command', { type, roundId: c.latest?.round?.id, roundInstance: c.latest?.roundInstance, ...extra });
-  return { game, a, b, ca, cb, client, sync, command };
+  const cb = await emit(b, 'enter', { mode: 'join', code: ca.code.toLowerCase() });
+  const sync = c => { const next = event(c, 'state'); c.emit('sync'); return next; };
+  const command = (c, type, extra = {}) => emit(c, 'command', { type, roundId: c.latest?.round?.id, roundInstance: c.latest?.roundInstance, ...extra });
+  const answer = (c, value) => command(c, 'answer', { answer: value });
+  return { game, origin, a, b, ca, cb, client, sync, command, answer };
 }
-test('two simultaneous clients: privacy, validation, submission, results, transitions, reconnect', async t => {
-  // Exercise future progression with a second fixture, without shipping advanced levels.
-  const future = structuredClone(rounds[0]); future.id = 'future-round';
-  const { a, b, ca, cb, client, sync, command } = await setup(t, { rounds: [...rounds, future] });
-  assert.equal(ca.ok, true); assert.equal(cb.ok, true);
-  const third = await client(); assert.equal((await emit(third, 'enter', { mode: 'join', code: ca.code })).ok, false);
+async function firstRound({ a, b, command, answer, sync }) {
+  await command(a, 'start'); await sync(a); await sync(b);
+  assert.equal((await answer(a, ['desk'])).ok, true);
+  assert.equal((await answer(b, ['bag'])).ok, true);
+  await command(a, 'submit'); await command(b, 'submit');
+  await sync(a); await sync(b);
+}
+test('two seats, host authority, own hidden answers, partner clues, teacher fields omitted', async t => {
+  const { a, b, ca, client, sync, command } = await setup(t);
+  const third = await client();
+  assert.equal((await emit(third, 'enter', { mode: 'join', code: ca.code })).ok, false);
+  assert.equal((await emit(third, 'enter', { mode: 'resume', code: ca.code, token: 'fake' })).ok, false);
   assert.equal((await command(b, 'start')).ok, false);
   assert.equal((await command(a, 'start')).ok, true);
   const sa = await sync(a), sb = await sync(b);
-  assert.equal(sa.deadline, sb.deadline);
-  for (const [s, seat] of [[sa, 0], [sb, 1]]) {
-    assert(s.round.cards[seat].actions.every(a => a.status));
-    assert(s.round.cards[1 - seat].actions.every(a => !('status' in a)));
-    assert(s.round.cards[1 - seat].actions.every(a => !('answer' in a)));
-    assert.equal(s.results, null);
-    assert(!JSON.stringify(s).includes('token'));
+  assert.equal(sa.round.type, 'MULTI_SELECT'); assert.equal(sb.round.type, sa.round.type);
+  assert.equal(sa.roundInstance, sb.roundInstance); assert.equal(sa.deadline, null);
+  assert.deepEqual(sa.round.ownTask.options.map(o => o.id), ['desk', 'chair', 'pen']);
+  assert.deepEqual(sb.round.ownTask.options.map(o => o.id), ['book', 'bag', 'apple']);
+  assert.deepEqual(sa.round.partnerTask.correctAnswer, ['bag']);
+  assert.deepEqual(sb.round.partnerTask.correctAnswer, ['desk']);
+  for (const state of [sa, sb]) {
+    assert(!('correctAnswer' in state.round.ownTask));
+    assert.equal(state.completion, null);
+    for (const task of [state.round.ownTask, state.round.partnerTask]) {
+      assert(!('targetQuestionKo' in task)); assert(!('suggestedAnswerKo' in task));
+    }
+    assert(!JSON.stringify(state).includes('token')); assert(!('history' in state));
   }
-  assert.equal((await command(a, 'submit')).ok, false);
-  assert.equal((await command(a, 'answer', { actionId: rounds[0].cards[0].actions[0].id, status: 'REQUIRED' })).ok, false);
-  assert.equal((await command(a, 'answer', { actionId: rounds[0].cards[1].actions[0].id, status: 'FAKE' })).ok, false);
-  for (const [c, seat] of [[a, 0], [b, 1]]) for (const action of rounds[0].cards[1 - seat].actions) assert.equal((await command(c, 'answer', { actionId: action.id, status: action.status })).ok, true);
-  // A may change a choice before submitting.
-  const action = rounds[0].cards[1].actions[0];
-  await command(a, 'answer', { actionId: action.id, status: action.status === 'REQUIRED' ? 'FORBIDDEN' : 'REQUIRED' });
-  await command(a, 'answer', { actionId: action.id, status: action.status });
-  b.disconnect();
-  const resumed = await client();
-  assert.equal((await emit(resumed, 'enter', { mode: 'resume', code: cb.code, token: cb.token })).ok, true);
-  const recovered = await sync(resumed); assert.equal(recovered.seat, 1); assert.equal(Object.keys(recovered.draft).length, 3); assert.equal(recovered.deadline, sa.deadline);
-  assert.equal((await command(a, 'submit')).ok, true);
-  assert.equal((await command(a, 'submit')).ok, false);
-  assert.equal((await command(a, 'answer', { actionId: action.id, status: action.status })).ok, false);
-  assert.equal((await command(resumed, 'submit')).ok, true);
-  const results = await sync(a); assert.equal(results.phase, 'results'); assert.equal(results.results.success, true);
-  assert.equal(results.results.combinedCorrect, 6); assert.equal(results.results.combinedTotal, 6);
-  assert.equal(results.results.finishedBeforeTimeout, true);
-  assert(results.round.cards.every(c => c.actions.every(a => a.status)));
-  assert.equal((await command(a, 'next')).ok, true); assert.equal((await sync(a)).roundIndex, 1);
-  assert.equal((await command(a, 'answer', { roundId: rounds[0].id, actionId: action.id, status: action.status })).ok, false);
-  assert.equal((await command(a, 'restart')).ok, true); assert.equal((await sync(a)).roundIndex, 0);
-  assert.equal((await command(a, 'answer', { roundInstance: sa.roundInstance, actionId: action.id, status: action.status })).ok, false);
-  assert.deepEqual((await sync(a)).draft, {});
 });
-test('server deadline rejects late answers and reveals identical timeout scores', async t => {
-  let time = 100000;
-  const { a, b, sync, command } = await setup(t, { now: () => time });
-  await command(a, 'start'); const state = await sync(a);
-  time = state.deadline;
-  assert.equal((await command(a, 'answer', { actionId: rounds[0].cards[1].actions[0].id, status: 'REQUIRED' })).ok, false);
-  const sa = await sync(a), sb = await sync(b);
-  assert.equal(sa.phase, 'results'); assert.equal(sa.results.reason, 'timeout'); assert.deepEqual(sa.results, sb.results); assert.equal(sa.results.players[0].correct, 0);
-  assert.equal(sa.results.finishedBeforeTimeout, false);
-});
-test('real timer finishes automatically with disconnected partner', async t => {
-  const short = structuredClone(rounds); short[0].durationSeconds = 0.15;
-  const { a, b, command } = await setup(t, { rounds: short });
-  await command(a, 'start'); b.disconnect();
-  let s;
-  do { s = await event(a, 'state'); } while (s.phase !== 'results');
-  assert.equal(s.results.reason, 'timeout'); assert.equal(s.results.success, false);
-});
-test('single supplied round has exact content and server does not serve solutions', async t => {
-  assert.equal(rounds.length, 1); assert.equal(rounds[0].durationSeconds, 60);
-  assert.deepEqual(rounds[0].cards.map(c => c.actions.map(a => [a.id, a.status])), [
-    [['read', 'REQUIRED'], ['drink', 'FORBIDDEN'], ['dance', 'REQUIRED']],
-    [['run', 'FORBIDDEN'], ['eat', 'REQUIRED'], ['sleep', 'REQUIRED']]
-  ]);
-  const { game, a, b, sync, command } = await setup(t);
-  const origin = `http://127.0.0.1:${game.server.address().port}`;
-  assert.equal((await fetch(origin + '/content/rounds.json')).status, 404);
-  for (const card of rounds[0].cards) for (const action of card.actions) assert.equal((await fetch(origin + action.image)).status, 200);
+test('multi-select toggling, multiple choices, strict validation, locking and immediate transition', async t => {
+  const { a, b, command, answer, sync } = await setup(t);
   await command(a, 'start'); await sync(a); await sync(b);
-  for (const c of [a,b]) {
-    const seat = c.latest.seat;
-    for (const action of rounds[0].cards[1-seat].actions) await command(c,'answer',{actionId:action.id,status:action.status});
-    await command(c,'submit');
-  }
-  assert.equal((await command(a, 'next')).ok, false);
-  await command(a, 'restart');
-  const restarted = await sync(a);
-  assert.deepEqual(restarted.draft, {}); assert.equal(restarted.results, null);
-  assert(restarted.players.every(p => !p.submitted));
-});
-test('partial saved drafts score at timeout without submission', async t => {
-  let time = 100000;
-  const { a, b, sync, command } = await setup(t, { now: () => time });
-  await command(a, 'start'); const before = await sync(a);
-  const action = rounds[0].cards[1].actions[0];
-  await command(a, 'answer', { actionId: action.id, status: action.status });
-  time = before.deadline;
+  assert.equal((await command(a, 'submit')).ok, false);
+  for (const invalid of [['bag'], ['desk', 'desk'], 'desk', null, {}, [1], ['desk', 'unknown']]) assert.equal((await answer(a, invalid)).ok, false);
+  assert.equal((await answer(a, ['desk', 'chair'])).ok, true);
+  assert.deepEqual((await sync(a)).draft, ['desk', 'chair']);
+  assert.equal((await answer(a, [])).ok, true);
+  assert.equal((await command(a, 'submit')).ok, false);
+  await answer(a, ['desk']); const before = await sync(a);
+  await command(a, 'submit');
+  const waiting = await sync(a); assert.equal(waiting.phase, 'playing'); assert.equal(waiting.players[0].submitted, true);
+  assert.equal((await command(a, 'submit')).ok, false);
+  assert.equal((await answer(a, ['chair'])).ok, false);
+  await answer(b, ['bag']); await command(b, 'submit');
   const sa = await sync(a), sb = await sync(b);
-  assert.equal(sa.results.combinedCorrect, 1); assert.equal(sa.results.combinedTotal, 6);
-  assert.equal(sa.results.players[0].submitted, false);
-  assert.equal(sa.results.players[0].answers.filter(a => a.selected === null).length, 2);
-  assert.deepEqual(sa.results, sb.results);
+  assert.equal(sa.roundIndex, 1); assert.equal(sa.round.type, 'YES_NO'); assert.equal(sa.roundInstance, sb.roundInstance);
+  assert.notEqual(sa.roundInstance, before.roundInstance); assert.equal(sa.deadline, null); assert.equal(sa.completion, null);
+  assert(sa.players.every(p => !p.submitted)); assert.equal(sa.draft, null);
+  assert(a.states.every(s => !('results' in s) && ['lobby', 'playing'].includes(s.phase)));
+  assert.equal((await command(a, 'answer', { answer: ['chair'], roundId: before.round.id, roundInstance: before.roundInstance })).ok, false);
+});
+test('yes/no is a single answer, completion exposes only totals, restart clears history and draft', async t => {
+  const ctx = await setup(t); const { a, b, sync, command, answer } = ctx;
+  await firstRound(ctx);
+  assert.equal(a.latest.round.ownTask.subject.id, 'book'); assert.equal(b.latest.round.ownTask.subject.id, 'chair');
+  assert.equal(a.latest.round.partnerTask.correctAnswer, 'YES'); assert.equal(b.latest.round.partnerTask.correctAnswer, 'NO');
+  for (const invalid of [['YES'], ['NO', 'YES'], false, 'required', 'yes', null]) assert.equal((await answer(a, invalid)).ok, false);
+  await answer(a, 'YES'); assert.equal((await sync(a)).draft, 'YES');
+  await answer(a, 'NO'); await answer(b, 'YES'); await command(a, 'submit'); await command(b, 'submit');
+  const sa = await sync(a), sb = await sync(b);
+  assert.equal(sa.phase, 'completed'); assert.deepEqual(sa.completion, sb.completion);
+  assert.equal(sa.completion.roundsCompleted, 2); assert.deepEqual(sa.completion.players.map(p => p.correct), [2, 2]);
+  assert.equal(sa.round, null); assert.equal(sa.draft, null);
+  assert(!JSON.stringify(sa).includes('correctAnswer')); assert(!JSON.stringify(sa).includes('selected'));
+  const oldInstance = sa.roundInstance;
+  assert.equal((await command(b, 'restart')).ok, false);
+  assert.equal((await command(a, 'restart')).ok, true);
+  const restarted = await sync(a); assert.equal(restarted.roundIndex, 0); assert.equal(restarted.phase, 'playing');
+  assert.deepEqual(restarted.draft, []); assert.equal(restarted.completion, null); assert.equal(restarted.deadline, null);
+  assert(restarted.players.every(p => !p.submitted));
+  assert.equal((await command(a, 'answer', { answer: ['desk'], roundInstance: oldInstance })).ok, false);
+});
+test('timer OFF waits indefinitely, has no timeout handle, and remains OFF across rounds', async t => {
+  let time = 100000;
+  const ctx = await setup(t, { now: () => time }); const { a, b, command, answer, sync, game, ca } = ctx;
+  await command(a, 'start'); time += 365 * 86400000;
+  const s = await sync(a); assert.equal(s.phase, 'playing'); assert.equal(s.deadline, null); assert.equal(game.rooms.get(ca.code).timeout, null);
+  await sync(b); await answer(a, ['desk']); await answer(b, ['bag']); await command(a, 'submit'); await command(b, 'submit');
+  assert.equal((await sync(a)).deadline, null); assert.equal(a.latest.timer.enabled, false);
+});
+test('timer options, host-only configuration and no mid-game changes', async t => {
+  const { a, b, command, sync } = await setup(t);
+  assert.equal((await command(b, 'configure', { timer: { enabled: true, durationSeconds: 30 } })).ok, false);
+  for (const invalid of [null, {}, { enabled: 'yes', durationSeconds: 30 }, { enabled: true, durationSeconds: 31 }, { enabled: true, durationSeconds: '60' }]) assert.equal((await command(a, 'configure', { timer: invalid })).ok, false);
+  for (const durationSeconds of [30,45,60,90]) {
+    assert.equal((await command(a, 'configure', { timer: { enabled: true, durationSeconds } })).ok, true);
+    assert.equal((await sync(b)).timer.durationSeconds, durationSeconds);
+  }
+  await command(a, 'start'); const sa = await sync(a), sb = await sync(b);
+  assert.equal(sa.deadline, sb.deadline); assert(sa.deadline - sa.serverNow <= 90000 && sa.deadline - sa.serverNow > 89000);
+  assert.equal((await command(a, 'configure', { timer: { enabled: false, durationSeconds: 60 } })).ok, false);
+});
+test('timeout scores saved answers, advances both clients, rejects stale commands, finishes game', async t => {
+  let time = 100000;
+  const { a, b, command, answer, sync } = await setup(t, { now: () => time });
+  await command(a, 'configure', { timer: { enabled: true, durationSeconds: 30 } });
+  await command(a, 'start'); const first = await sync(a); await sync(b);
+  await answer(a, ['desk']);
+  time = first.deadline;
+  assert.equal((await command(a, 'submit')).ok, false);
+  const second = await sync(a), secondB = await sync(b);
+  assert.equal(second.roundIndex, 1); assert.equal(second.roundInstance, secondB.roundInstance);
+  assert.equal(second.deadline, time + 30000); assert.equal(second.completion, null);
+  assert.equal((await command(b, 'answer', { answer: ['bag'], roundId: first.round.id, roundInstance: first.roundInstance })).ok, false);
+  time = second.deadline;
+  const done = await sync(a); assert.equal(done.phase, 'completed'); assert.equal(done.completion.timedOutRounds, 2);
+  assert.deepEqual(done.completion.players.map(p => p.correct), [1, 0]);
+});
+test('real scheduled timeout advances automatically even with partner disconnected', async t => {
+  const { a, b, command, sync } = await setup(t);
+  await command(a, 'configure', { timer: { enabled: true, durationSeconds: 30 } });
+  await command(a, 'start'); await sync(a); b.disconnect();
+  const state = await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Scheduled expiry failed')), 35000);
+    const listener = s => { if (s.roundIndex === 1) { clearTimeout(timeout); a.off('state', listener); resolve(s); } };
+    a.on('state', listener);
+  });
+  assert.equal(state.roundIndex, 1); assert.equal(state.players[1].connected, false);
+});
+test('reconnection restores draft, submission lock, seat and shared round; offline submitted player does not block advance', async t => {
+  const { a, b, ca, client, sync, command, answer } = await setup(t);
+  await command(a, 'start'); await sync(a); await sync(b);
+  await answer(a, ['desk', 'pen']); const first = await sync(a);
+  a.disconnect(); const resumed = await client();
+  assert.equal((await emit(resumed, 'enter', { mode: 'resume', code: ca.code, token: ca.token })).ok, true);
+  const recovered = await sync(resumed); assert.equal(recovered.seat, 0); assert.deepEqual(recovered.draft, ['desk','pen']); assert.equal(recovered.roundInstance, first.roundInstance);
+  await answer(resumed, ['desk']); await command(resumed, 'submit'); resumed.disconnect();
+  await answer(b, ['bag']); await command(b, 'submit');
+  const next = await sync(b); assert.equal(next.roundIndex, 1); assert.equal(next.players[0].connected, false);
+  const again = await client(); await emit(again, 'enter', { mode: 'resume', code: ca.code, token: ca.token });
+  assert.equal((await sync(again)).roundInstance, next.roundInstance); assert.equal(again.latest.draft, null);
+});
+test('Render origin policy, polling and websocket sessions, private routes and assets', async t => {
+  const ctx = await setup(t, { allowedOrigin: 'https://averanges.github.io' });
+  const { origin, client } = ctx;
+  const response = await fetch(origin + '/socket.io/?EIO=4&transport=polling', { headers: { Origin: 'https://averanges.github.io' } });
+  assert.equal(response.headers.get('access-control-allow-origin'), 'https://averanges.github.io');
+  const denied = await fetch(origin + '/socket.io/?EIO=4&transport=polling', { headers: { Origin: 'https://unrelated.example' } });
+  assert.equal(denied.headers.get('access-control-allow-origin'), null);
+  await client(['polling']); await client(['websocket']);
+  for (const route of ['/content/rounds.json','/server.js','/docs/config.js','/.env','/test/multiplayer.test.js']) assert.equal((await fetch(origin + route)).status, 404);
+  for (const name of ['desk','chair','pen','book','bag','apple']) assert.equal((await fetch(origin + '/assets/objects/' + name + '.webp')).status, 200);
+});
+test('Pages is synchronized, keeps working Render URL, and contains no answer keys or obsolete gameplay', () => {
+  const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
+  assert.equal(read('docs/app.js'), read('public/app.js')); assert.equal(read('docs/style.css'), read('public/style.css'));
+  assert(read('docs/config.js').includes('https://korean-duo.onrender.com'));
+  assert(read('docs/index.html').includes('./bootstrap.js'));
+  for (const name of ['docs/index.html','docs/app.js']) {
+    const text = read(name); assert(!text.includes('REQUIRED')); assert(!text.includes('FORBIDDEN')); assert(!text.includes('targetQuestionKo'));
+  }
+  assert(!fs.existsSync(path.join(__dirname,'../docs/content')));
+});
+test('content has only the two specified rounds and validates answer types and unique option IDs', () => {
+  assert.equal(rounds.length, 2); assert.deepEqual(rounds.map(r => r.type), ['MULTI_SELECT','YES_NO']);
+  assert.deepEqual(rounds[0].tasks.A.correctAnswer, ['desk']); assert.deepEqual(rounds[0].tasks.B.correctAnswer, ['bag']);
+  assert.equal(rounds[1].tasks.A.correctAnswer, 'NO'); assert.equal(rounds[1].tasks.B.correctAnswer, 'YES');
+  const bad = structuredClone(rounds); bad[0].tasks.A.options.push(bad[0].tasks.A.options[0]);
+  assert.throws(() => validateRounds(bad));
+  const multi = structuredClone(rounds); multi[0].tasks.A.correctAnswer = ['desk','chair']; assert.doesNotThrow(() => validateRounds(multi));
 });

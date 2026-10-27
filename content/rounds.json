@@ -1,393 +1,100 @@
 [
   {
     "id": "round-1",
-    "title": "Первый раунд · 기본 행동",
-    "durationSeconds": 60,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
+    "title": "Что есть?",
+    "type": "MULTI_SELECT",
+    "tasks": {
+      "A": {
+        "id": "r1-a",
+        "promptRu": "Что есть?",
+        "targetQuestionKo": "뭐가 있어요?",
+        "suggestedAnswerKo": "책상이 있어요.",
+        "options": [
           {
-            "id": "read",
-            "label": "책을 읽다",
-            "english": "Reading a book",
-            "image": "/assets/read.webp",
-            "status": "REQUIRED"
+            "id": "desk",
+            "labelKo": "책상",
+            "labelRu": "Стол",
+            "image": "/assets/objects/desk.webp"
           },
           {
-            "id": "drink",
-            "label": "물을 마시다",
-            "english": "Drinking water",
-            "image": "/assets/drink.webp",
-            "status": "FORBIDDEN"
+            "id": "chair",
+            "labelKo": "의자",
+            "labelRu": "Стул",
+            "image": "/assets/objects/chair.webp"
           },
           {
-            "id": "dance",
-            "label": "춤을 추다",
-            "english": "Dancing",
-            "image": "/assets/dance.webp",
-            "status": "REQUIRED"
+            "id": "pen",
+            "labelKo": "펜",
+            "labelRu": "Ручка",
+            "image": "/assets/objects/pen.webp"
           }
+        ],
+        "correctAnswer": [
+          "desk"
         ]
       },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
+      "B": {
+        "id": "r1-b",
+        "promptRu": "Что есть?",
+        "targetQuestionKo": "뭐가 있어요?",
+        "suggestedAnswerKo": "가방이 있어요.",
+        "options": [
           {
-            "id": "run",
-            "label": "달리다",
-            "english": "Running",
-            "image": "/assets/run.webp",
-            "status": "FORBIDDEN"
+            "id": "book",
+            "labelKo": "책",
+            "labelRu": "Книга",
+            "image": "/assets/objects/book.webp"
           },
           {
-            "id": "eat",
-            "label": "사과를 먹다",
-            "english": "Eating an apple",
-            "image": "/assets/eat.webp",
-            "status": "REQUIRED"
+            "id": "bag",
+            "labelKo": "가방",
+            "labelRu": "Сумка",
+            "image": "/assets/objects/bag.webp"
           },
           {
-            "id": "sleep",
-            "label": "자다",
-            "english": "Sleeping",
-            "image": "/assets/sleep.webp",
-            "status": "REQUIRED"
+            "id": "apple",
+            "labelKo": "사과",
+            "labelRu": "Яблоко",
+            "image": "/assets/objects/apple.webp"
           }
+        ],
+        "correctAnswer": [
+          "bag"
         ]
       }
-    ]
+    }
   },
   {
     "id": "round-2",
-    "title": "Простые действия",
-    "durationSeconds": 50,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "tv",
-            "label": "텔레비전을 보다",
-            "image": "/assets/tv.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "clean",
-            "label": "청소하다",
-            "image": "/assets/clean.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "write",
-            "label": "이름을 쓰다",
-            "image": "/assets/write.webp",
-            "status": "REQUIRED"
-          }
-        ]
+    "title": "Есть ли предмет?",
+    "type": "YES_NO",
+    "tasks": {
+      "A": {
+        "id": "r2-a",
+        "promptRu": "Есть ли книга?",
+        "targetQuestionKo": "책이 있어요?",
+        "suggestedAnswerKo": "아니요, 없어요.",
+        "subject": {
+          "id": "book",
+          "labelKo": "책",
+          "labelRu": "Книга",
+          "image": "/assets/objects/book.webp"
+        },
+        "correctAnswer": "NO"
       },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "cook",
-            "label": "요리하다",
-            "image": "/assets/cook.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "call",
-            "label": "전화하다",
-            "image": "/assets/call.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "open_door",
-            "label": "문을 열다",
-            "image": "/assets/open_door.webp",
-            "status": "FORBIDDEN"
-          }
-        ]
+      "B": {
+        "id": "r2-b",
+        "promptRu": "Есть ли стул?",
+        "targetQuestionKo": "의자가 있어요?",
+        "suggestedAnswerKo": "네, 있어요.",
+        "subject": {
+          "id": "chair",
+          "labelKo": "의자",
+          "labelRu": "Стул",
+          "image": "/assets/objects/chair.webp"
+        },
+        "correctAnswer": "YES"
       }
-    ]
-  },
-  {
-    "id": "round-3",
-    "title": "Места",
-    "durationSeconds": 50,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "library_read",
-            "label": "도서관에서 책을 읽다",
-            "image": "/assets/library_read.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "market_run",
-            "label": "마트에서 뛰다",
-            "image": "/assets/market_run.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "restaurant_eat",
-            "label": "식당에서 밥을 먹다",
-            "image": "/assets/restaurant_eat.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "home_game",
-            "label": "집에서 게임하다",
-            "image": "/assets/home_game.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "park_photo",
-            "label": "공원에서 사진을 찍다",
-            "image": "/assets/park_photo.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "classroom_call",
-            "label": "교실에서 전화하다",
-            "image": "/assets/classroom_call.webp",
-            "status": "FORBIDDEN"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "round-4",
-    "title": "Даты",
-    "durationSeconds": 45,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "monday_study",
-            "label": "10월 14일에 공부하다",
-            "image": "/assets/r4_monday_study.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "wednesday_soccer",
-            "label": "10월 16일에 축구하다",
-            "image": "/assets/r4_wednesday_soccer.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "friday_movie",
-            "label": "10월 18일에 영화를 보다",
-            "image": "/assets/r4_friday_movie.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "tuesday_clean",
-            "label": "10월 20일에 청소하다",
-            "image": "/assets/r4_tuesday_clean.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "thursday_cook",
-            "label": "10월 22일에 요리하다",
-            "image": "/assets/r4_thursday_cook.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "sunday_shop",
-            "label": "10월 25일에 쇼핑하다",
-            "image": "/assets/r4_sunday_shop.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "round-5",
-    "title": "Время",
-    "durationSeconds": 45,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "0700_wake",
-            "label": "7시에 일어나다",
-            "image": "/assets/r5_0700_wake.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "1200_eat",
-            "label": "12시에 밥을 먹다",
-            "image": "/assets/r5_1200_eat.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "2200_study",
-            "label": "밤 10시에 공부하다",
-            "image": "/assets/r5_2200_study.webp",
-            "status": "FORBIDDEN"
-          }
-        ]
-      },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "0800_bus",
-            "label": "8시에 버스를 타다",
-            "image": "/assets/r5_0800_bus.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "1500_run",
-            "label": "오후 3시에 운동하다",
-            "image": "/assets/r5_1500_run.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "0900_shower",
-            "label": "9시에 샤워하다",
-            "image": "/assets/r5_0900_shower.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "round-6",
-    "title": "Количество",
-    "durationSeconds": 40,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "three_apples",
-            "label": "사과 세 개를 먹다",
-            "image": "/assets/r6_three_apples.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "two_books",
-            "label": "책 두 권을 읽다",
-            "image": "/assets/r6_two_books.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "two_water",
-            "label": "물 두 잔을 마시다",
-            "image": "/assets/r6_two_water.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "four_bananas",
-            "label": "바나나 네 개를 먹다",
-            "image": "/assets/r6_four_bananas.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "three_coffees",
-            "label": "커피 세 잔을 마시다",
-            "image": "/assets/r6_three_coffees.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "two_pencils",
-            "label": "연필 두 자루를 사다",
-            "image": "/assets/r6_two_pencils.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "round-7",
-    "title": "Цена",
-    "durationSeconds": 40,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "coat_30000",
-            "label": "이 옷을 3만 원에 사다",
-            "image": "/assets/r7_coat_30000.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "coffee_4000",
-            "label": "이 커피를 4천 원에 사다",
-            "image": "/assets/r7_coffee_4000.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "book_12000",
-            "label": "이 책을 만 2천 원에 사다",
-            "image": "/assets/r7_book_12000.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "headphones_50000",
-            "label": "이 헤드폰을 5만 원에 사다",
-            "image": "/assets/r7_headphones_50000.webp",
-            "status": "FORBIDDEN"
-          },
-          {
-            "id": "toy_8000",
-            "label": "이 인형을 8천 원에 사다",
-            "image": "/assets/r7_toy_8000.webp",
-            "status": "REQUIRED"
-          },
-          {
-            "id": "ramen_1500",
-            "label": "이 라면을 천오백 원에 사다",
-            "image": "/assets/r7_ramen_1500.webp",
-            "status": "FORBIDDEN"
-          }
-        ]
-      }
-    ]
+    }
   }
 ]

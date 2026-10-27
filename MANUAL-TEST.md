@@ -1,37 +1,35 @@
-# Browser test record and checklist
+# Korean Duo 2.0 — проверка
 
-Local browser checks on 2026-10-27 using separate, independently opened browser-tab sessions with distinct seat credentials. The first pair exercised gameplay and recovery in the narrow in-app browser; another pair verified the desktop view at 1280 px. This was not a Replit or physical cross-device test.
+Локальная проверка 27 октября 2026: backend `http://localhost:3000`, отдельный Pages-preview `http://localhost:3002/korean-duo/`, две независимые браузерные сессии.
 
-| Check | Observed result |
+| Проверка | Наблюдение |
 | --- | --- |
-| Create / join | A gets a visible five-character code; B joins the same code; both show connected |
-| Host gate | Start disabled before B joins; only A gets Start |
-| Start | Both enter Round 1/1 with a 01:00 countdown |
-| Opposite perspectives | A: read/drink/dance known, run/eat/sleep unknown; B sees the reverse |
-| Illustrated layout | Supplied WebPs, left green known panel, right blue single-action carousel, yellow timer, green/red choices |
-| Incomplete card | Submit disabled with 0/3 selected |
-| Navigation | A selected run, apple, sleep, then returned to apple; the saved green choice remained selected |
-| Page refresh | B selected all three answers, refreshed, and recovered the same room, seat, running timer and saved answers |
-| First submission | A's choices locked and `Ожидаем напарника` appeared |
-| Second submission | Both immediately received A 3/3, B 3/3, combined 6/6 and the message confirming completion before timeout |
-| Results | All six correct statuses visible; B had no progression controls; A had Replay |
-| Automatic expiry | A separate room left unanswered reached 00:00 and showed 0/6 results without any submission |
-| Replay | A replayed after timeout; both returned to 01:00 with blank choices and incomplete Submit disabled |
-| Desktop | At 1280 px, known and unknown panels measured approximately 32% and 68%; no horizontal overflow |
-| Narrow layout | Known actions formed a compact strip above the task; one player's screen remained visible with no horizontal overflow |
+| Вход | A создал комнату, B вошёл по коду, оба видят подключение |
+| Таймер по умолчанию | В настройке «Выключен», в игре нет отсчёта |
+| Разные задания | A выбирает стол/стул/ручку; B — книгу/сумку/яблоко |
+| Известная подсказка | A видит отмеченную сумку для B; B — стол для A |
+| Множественный выбор | A выбрал одновременно стол и стул, затем снял стул |
+| Перезагрузка | A обновил страницу и получил сохранённый стол в той же комнате |
+| Первая отправка | Выбор заблокирован, кнопка показывает «Ожидаем напарника» |
+| Второй ответ | Оба сразу перешли в YES_NO без промежуточного экрана результатов |
+| YES_NO | A видит книгу и вопрос о книге, B — стул; известные карточки показывают ответ на вопрос другого игрока |
+| Смена ответа | A сменил «Да» на «Нет» до отправки |
+| Завершение | После двух ответов оба увидели «Все раунды пройдены!», 2/2 раунда и по 2/2 верных ответа; подробных ключей нет |
+| Подтверждённые картинки | Повторная проверка с изображениями из рядов 1–3: все шесть картинок первого раунда загрузились с `/assets/objects/*.webp`; оба раунда пройдены |
+| Повтор с таймером | После завершения A выбрал 30 секунд и начал заново; оба клиента показали 00:30 и пустые варианты |
 
-Automated tests separately cover third-player rejection, hidden statuses absent from actual Socket.IO payloads, invalid answers, submission locking, deadlines, disconnected partner timeout, stale attempts after restart, full reset, host progression using a second test-only round, and first-round assets/routes.
+Последний полный запуск: **13 тестов, 13 успешных**. Проверка ресурсов: 27 ID, 27 файлов WebP 512×512, 14 плановых наборов, пропусков и ошибок нет. Рабочий URL в `docs/config.js` сохранён.
 
-## Repeat the checks
+Серверные интеграционные тесты дополнительно проверяют лимит двух игроков, права A, недопустимые ID/типы/дубли, снятие всех вариантов и запрет пустой отправки, блокировку и повторную отправку, OFF без дедлайна, четыре длительности, запрет смены таймера посреди игры, истечение и старые экземпляры, отключение после отправки, восстановление и CORS/polling/WebSocket. Один тест ожидает настоящее 30-секундное истечение.
 
-1. `npm ci`, then `npm start`. Open two fresh browser tabs at `http://localhost:3000` (do not duplicate a tab).
-2. A creates a room; B joins using the code. Try a third tab: expect “Комната заполнена”.
-3. A starts. Confirm the content and opposite views listed above. Unknown actions show only vocabulary, not a completed correct sentence.
-4. Select answers, navigate away/back, change a choice and refresh: saved choices should remain. Submit must enable only with all choices saved.
-5. A submits: expect locked choices and waiting. B submits: expect identical shared results and combined score. All-correct choices are A: forbidden/required/required; B: required/forbidden/required.
-6. A selects Replay: both should return to a new 60-second attempt, blank choices, and unlocked controls.
-7. In another attempt, answer only one action and let time expire: all clients should reveal results; saved choices score and blanks count as incorrect.
-8. Temporarily disconnect one browser: its seat stays reserved, partner status changes, and timer keeps running. Reconnect in that original tab: recover the same seat, draft and deadline.
-9. Compare a wide desktop view and a narrow browser. Verify that Korean labels, navigation, answer buttons and submission controls remain usable.
+Для повторения:
 
-Deployment and physical mobile device testing remain outside this local verification.
+1. `npm ci`, `npm test`.
+2. Запустите backend с `CLIENT_ORIGIN=http://localhost:3002` и `npm run preview:pages` во втором терминале.
+3. Пройдите таблицу выше в двух свежих вкладках. Не дублируйте вкладку с сохранённым местом.
+4. Попробуйте третьего игрока: вход должен быть отклонён.
+5. Начните заново с 30 секундами. Дождитесь конца — раунд меняется у обоих, незаполненное считается ошибкой. Второй таймер также включён; выключите перед новым повтором и убедитесь, что отсчёт исчез.
+6. Отключите первого игрока после «Готово», отправьте ответ вторым, затем верните первого: он должен восстановить уже новый раунд.
+7. Проверьте узкое окно: подсказка перемещается выше основной карточки; элементы не выходят за экран.
+
+Действующий GitHub Pages + Render потребует отдельного smoke-test после публикации нового коммита. Этот этап не выполняется локальным preview.

@@ -1,148 +1,108 @@
-# Korean Duo — first playable round
+# Korean Duo 2.0
 
-A cooperative two-player Korean grammar game. Node.js + Express + Socket.IO; HTML, CSS, and vanilla JavaScript. Russian interface based on the approved navy/green/blue reference, with six supplied WebP illustrations served as individual files. The reference screenshot is not used as a background.
+Кооперативное упражнение для устной практики корейского. Ровно два игрока в комнате и два игровых раунда. Node.js, Express, Socket.IO, обычные HTML/CSS/JavaScript. Комнаты хранятся в памяти сервера.
 
-This version deliberately includes **one 60-second round**. The engine supports additional rounds, but advanced levels are not implemented yet.
+Это замена прежней механики действий и запретов. Новая версия не содержит режимов, карусели, проверки произношения, чата, AI или голосовой связи.
 
-## Start locally
+## Запуск
 
-Install Node.js 20 or newer. In this folder:
+Нужен Node.js 20+:
 
 ```sh
 npm ci
 npm start
 ```
 
-Open **http://localhost:3000** in two independently opened browser tabs/sessions, browsers, or devices. A creates a room and shares the five-character code. B joins, then A starts.
+Откройте `http://localhost:3000` в двух независимых вкладках/браузерах. A создаёт комнату, B вводит её код. Открывайте новую вкладку, а не дублируйте существующую: дублирование иногда копирует сохранённый идентификатор места.
 
-For devices on the same network, use the server computer's local network address and port 3000 instead of localhost. The app listens on `0.0.0.0` and uses `PORT` if configured. No database, accounts, API keys, microphone, speech recognition, AI, or chat service is required.
+## Правила
 
-## Round 1
+У каждого игрока одно неизвестное задание. Слева он видит ответ на вопрос напарника, справа — собственный вопрос. Игроки разговаривают лично или по своему звонку.
 
-| Card | Action | Korean vocabulary | Correct status |
-| --- | --- | --- | --- |
-| 1 | Reading a book | 책을 읽다 | REQUIRED |
-| 1 | Drinking water | 물을 마시다 | FORBIDDEN |
-| 1 | Dancing | 춤을 추다 | REQUIRED |
-| 2 | Running | 달리다 | FORBIDDEN |
-| 2 | Eating an apple | 사과를 먹다 | REQUIRED |
-| 2 | Sleeping | 자다 | REQUIRED |
+1. **Что есть?** Три иллюстрированных варианта, можно выбирать и снимать несколько предметов. Для отправки нужен хотя бы один. У A: стол/стул/ручка; у B: книга/сумка/яблоко.
+2. **Есть ли предмет?** У A вопрос о книге, у B о стуле. Один выбор: «Да» или «Нет».
 
-A sees Card 1's clues on the left and answers Card 2 on the right. B sees Card 2's clues on the left and answers Card 1 on the right. **Each browser shows one player's interface.**
+Полные корейские вопросы и образцы ответа в интерфейсе не показываются: ученик составляет их сам. Словарные подписи допустимы. Сервер оценивает только выбранные варианты.
 
-Talk in person or through your own call. Use **아/어야 돼요** for required actions and **지 마세요** for forbidden actions. Only vocabulary labels, illustrations, and grammar choice labels appear; unknown actions never display the completed correct sentence.
+«Готово» фиксирует ответ. Первый отправивший видит «Ожидаем напарника». После второго ответа **оба автоматически переходят дальше**, без экрана правильности и без раскрытия собственного ответа. После второго раунда показывается «Игра завершена / Все раунды пройдены!» и только суммарное число правильных ответов. Подробные ключи и объяснения не показываются. A может начать упражнение заново.
 
-- Use either pair of arrows to switch between unknown actions. Choices are saved on the server and remain selected when returning to an action. Small dots show which actions have answers.
-- `Завершить раунд` enables after all unknown actions have a saved choice. Until then, answers can be changed. Submission locks choices and displays `Ожидаем напарника`.
-- Both submissions end the round immediately. Otherwise the server ends it at 60 seconds, even with disconnected players or incomplete cards.
-- Timeout scores the latest saved choices, including unsubmitted choices; unanswered actions are incorrect.
-- Results show A's score, B's score, combined score, whether both submitted before the deadline, and every correct status. All-correct answers and finishing before the deadline are reported separately.
-- Results remain until the host acts. With one configured round, the host sees `Сыграть ещё раз`. When more rounds are added, `Следующий раунд` appears automatically. Both players must be connected to restart or advance.
+## Таймер
 
-## Files and architecture
+По умолчанию **выключен**: нет ни отсчёта, ни серверного таймера. Игра ждёт обоих сколько нужно.
+
+Перед стартом или повтором A может выбрать 30, 45, 60 или 90 секунд на раунд. Настройка сохраняется при переходе; выключенный таймер сам не включается. С включённым таймером сервер устанавливает единый дедлайн. По истечении оцениваются сохранённые выборы, пустые ответы ошибочны, и оба переходят дальше. Между раундами правильность не сообщается.
+
+## Файлы
 
 ```text
-server.js                 Rooms, private seat views, validation, timers, scoring
-content/rounds.json        One playable round and answer keys; never served publicly
-content/PROGRESSION.md     Future content/scene architecture notes
-public/index.html         Russian entry, lobby, game, and result views
-public/style.css          Dark desktop layout and responsive stacked layout
-public/app.js             Carousel, saved choices, Socket.IO client, recovery
-public/assets/*.webp      Six supplied first-round illustrations
-test/multiplayer.test.js  Real simultaneous Socket.IO client integration tests
-MANUAL-TEST.md            Recorded browser checks and repeatable checklist
+server.js                 Комнаты, персональные снимки, проверка и переходы
+content/rounds.json        Два игровых раунда и закрытые ключи
+content/PROGRESSION.md     Правила расширения и соответствие плану
+public/                   Клиент для прямого запуска на сервере
+public/assets/            Переиспользуемые картинки и публичный манифест
+docs/                     Клиент GitHub Pages, без закрытого контента
+docs/config.js            Сохранённый рабочий URL Render
+scripts/sync-pages.js      Синхронизация клиента public → docs
+scripts/preview-pages.js   Локальная проверка раздельных адресов
+test/multiplayer.test.js   Интеграционные тесты настоящих Socket.IO сессий
+DEPLOY-GITHUB-RENDER.md    Обновление опубликованной версии
+MANUAL-TEST.md             Результаты и чек-лист ручной проверки
+CHANGELOG-2.0.md           Изменения относительно прежней игры
 ```
 
-`server.js` serves only `public/`. Personalized snapshots whitelist public action properties and include `status` only for the player's known card, or for all cards after results. Seat tokens, partner drafts, and hidden statuses are absent from pre-reveal snapshots. Answers are not derived from image names, and the browser contains no answer key.
+## Контент и приватность
 
-The server chooses the answerable card from the seat, validates action IDs and `REQUIRED`/`FORBIDDEN` statuses, requires complete drafts for submission, and rejects duplicate submissions and edits after locking. Each start/restart creates a fresh `roundInstance` token. Answer events carry both round ID and instance, so delayed events from an earlier attempt cannot modify a restarted round with the same content ID.
+`content/rounds.json` — массив раундов `{id, title, type, tasks: {A, B}}`. **Task A отвечает игрок A, а видит его ключ игрок B.** Типы: `MULTI_SELECT` и `YES_NO`.
 
-The server sets an absolute deadline, schedules expiry, and rechecks the deadline on commands. The client receives `serverNow`, estimates its clock offset, and displays the remaining time. It resynchronizes every 15 seconds and when returning to the tab. Local countdown display never decides acceptance or scoring.
+У MULTI_SELECT: `id`, `promptRu`, `options: [{id, labelKo, labelRu, image}]`, `correctAnswer: [optionId, ...]`. У YES_NO: `id`, `promptRu`, `subject: {id, labelKo, labelRu, image}`, `correctAnswer: "YES" | "NO"`.
 
-Socket events:
+`targetQuestionKo` и `suggestedAnswerKo` остаются только в серверном файле для преподавателя. `publicTask()` явно перечисляет разрешённые поля. Игрок получает свою задачу **без** `correctAnswer` и задачу напарника **с** ключом. История правильности остаётся на сервере; в конце клиент получает только счётчики. Папка `content/` не обслуживается Express и не копируется в `docs`.
 
-- `enter`: `{mode: 'create' | 'join' | 'resume', code?, token?}`; successful acknowledgement returns `{ok: true, code, token}`.
-- `command`: `{type, roundId?, roundInstance?, actionId?, status?}`; types are `start`, `answer`, `submit`, `next`, `restart`.
-- `sync`: requests the latest personalized snapshot.
-- Server `state`: seat, host role, connection/submission statuses, phase, round, deadline, private own draft, and results when available.
-- Entry/command failures return `{ok: false, error}`; the UI translates expected messages into Russian.
+Входящие ответы проверяются на тип, допустимые ID, повторы и принадлежность текущему месту. Пустой массив можно сохранить для снятия выбора, но нельзя отправить. После отправки изменения запрещены. У каждого запуска раунда случайный `roundInstance`; команды со старым экземпляром отклоняются, включая команды после перезапуска того же раунда.
 
-## Edit content
+## Надёжность
 
-Edit `content/rounds.json`, then restart. Content uses an array; each round has exactly two cards. IDs must be unique within their scope, durations positive, and each card must contain at least one action.
+- Третьему игроку вход запрещён. Коды комнат уникальны в текущем процессе.
+- Код и случайный токен места сохраняются в sessionStorage отдельно для версии 2.0 и адреса сервера. Перезагрузка/переподключение восстанавливает место, выбор и блокировку ответа.
+- Если отправивший ответ игрок отключился, его ответ сохраняется; второй ответ всё равно переводит комнату дальше. Вернувшийся игрок получает текущий раунд.
+- С отключённым таймером второй игрок может ждать сколько нужно. С включённым таймером отключение не останавливает отсчёт.
+- «Выйти из комнаты» очищает локальное место и открывает вход. Старое место остаётся зарезервированным; оно не передаётся третьему игроку.
+- Пустые комнаты удаляются через 30 минут без подключений, проверка раз в минуту; лимит 1000 комнат.
+- Перезапуск Render стирает комнаты. Нужен **один процесс / один экземпляр сервера**; распределённого хранилища нет.
 
-```json
-[
-  {
-    "id": "round-1",
-    "title": "Первый раунд · 기본 행동",
-    "durationSeconds": 60,
-    "cards": [
-      {
-        "id": "card-1",
-        "title": "Карточка 1",
-        "actions": [
-          {
-            "id": "read",
-            "label": "책을 읽다",
-            "english": "Reading a book",
-            "image": "/assets/read.webp",
-            "status": "REQUIRED"
-          }
-        ]
-      },
-      {
-        "id": "card-2",
-        "title": "Карточка 2",
-        "actions": [
-          {
-            "id": "run",
-            "label": "달리다",
-            "english": "Running",
-            "image": "/assets/run.webp",
-            "status": "FORBIDDEN"
-          }
-        ]
-      }
-    ]
-  }
-]
-```
+## GitHub Pages + Render
 
-The supplied archive's `verb` field was adapted to `label` and lowercase `answer` values to uppercase `status` to reuse the working server schema. No `answer` alias is sent to clients. The actual first round contains three actions in each card, as specified.
+Сохранена схема: `docs` на GitHub Pages, Node Web Service на Render. Рабочий `docs/config.js` сохранён. CORS по-прежнему берёт origin из `CLIENT_ORIGIN` на Render. Изображения и библиотека Socket.IO загружаются с backend; соединение использует HTTPS/WSS и может перейти на polling.
 
-Images may be PNG, WebP, or SVG under `public/assets/`, referenced using `/assets/...`. Startup validates required fields, IDs, correct statuses, image paths, and file existence. Existing SVG placeholders remain available for later prototyping; this round uses only the six supplied WebPs.
-
-Optional public `metadata` strings such as `location`, `day`, `date`, `quantity`, or `detail` appear as context. Never put secrets or solutions in metadata. `sceneId` can group multiple independently answerable action records that share the same scene image; the engine still scores by action ID. See `content/PROGRESSION.md` for future plans. New rounds do not require multiplayer logic changes; a future scene-centric UI or new answer type can be implemented separately.
-
-## Reconnection and MVP limits
-
-- Session storage saves the room code and a private random seat token per browser tab. A refresh or network reconnection restores the seat, saved answers, deadline, and submitted status. The carousel returns to its first action on refresh; each action's saved choice remains available.
-- Open a **fresh tab**, not a duplicate tab, for the other player. Some browsers copy session storage when duplicating. Using a seat token on a second connection transfers that seat and disconnects its previous connection.
-- Disconnected seats remain reserved. A third player cannot take them. If the original browser session is lost, create a new room. A network interruption does not pause the shared timer.
-- `Выйти из комнаты` clears the current tab's saved seat and returns to the entry screen so you can create/join another room. The old seat remains reserved until its room expires; leaving does not stop the partner's timer.
-- Empty rooms expire after 30 minutes without a connected player, checked each minute. Maximum 1,000 rooms per process.
-- Restarting the server clears rooms. The browser reports a missing saved room and offers entry/create controls again. No history is persisted.
-- Use one server process/instance. Scaling to several instances requires shared state, Socket.IO coordination, and distributed timer handling. Room codes are small-session access codes, not user authentication.
-
-## Deploy on Replit
-
-1. Create a Node.js app and upload this folder's contents into its root, or import a repository containing them. Include `package-lock.json`, `.replit`, `content/`, and `public/`; omit `node_modules`.
-2. Run `npm ci` in the Shell. Use `npm start` as the Run command. The supplied `.replit` includes run/build commands.
-3. In Publishing → Adjust settings, select **Reserved VM** and **Web server**. Use a single instance to keep in-memory rooms consistent. Static publishing cannot run this server.
-4. Build command: `npm ci --omit=dev`. Run command: `npm start`. Set `PORT=3000` if needed; map internal port 3000 to the external web port. The server also respects a platform-provided `PORT`.
-5. Publish, open the public HTTPS URL in two browsers/devices, create a room on A, and join on B. Socket.IO shares the website origin/port; no separate backend URL or CORS setup is required.
-6. Republish content/code changes between sessions. Restarting or republishing clears active rooms.
-
-See Replit's official [deployment types](https://docs.replit.com/features/publishing/deployment-types) and [port configuration](https://replit.com/blog/ports) guides. Publishing controls may change. This delivery was tested locally; no Replit deployment or paid resources were created.
-
-## Verify
+После правок `public` запускайте:
 
 ```sh
-npm ci
+npm run sync:pages
+```
+
+Команда копирует только клиентские HTML/JS/CSS и **не меняет `docs/config.js`**. Закрытые раунды не публикуются в Pages. Порядок обновления и проверка действующего сайта — в `DEPLOY-GITHUB-RENDER.md`.
+
+Для локальной проверки разделённой схемы в первом терминале PowerShell:
+
+```powershell
+$env:CLIENT_ORIGIN = 'http://localhost:3002'
+npm start
+```
+
+Во втором:
+
+```sh
+npm run preview:pages
+```
+
+Откройте `http://localhost:3002/korean-duo/`. Локальный preview подставляет localhost-конфигурацию в HTTP-ответ, не переписывая рабочий файл Render. HTTP разрешён загрузчиком только для localhost; опубликованный сайт продолжает использовать HTTPS.
+
+## Проверки
+
+```sh
 npm test
 ```
 
-Tests start isolated real HTTP servers and simultaneous Socket.IO clients. They verify answer privacy, room capacity, host authority, malformed/stale answers, changeable drafts, complete submissions, locking, recovery, shared results, deadlines, actual timeout, restart/reset, first-round content, asset availability, and content-key routes returning 404. A second test-only round checks future progression without shipping advanced levels.
+Тесты используют настоящие HTTP-серверы и Socket.IO-клиенты. В том числе проверяется реальное 30-секундное истечение таймера, поэтому весь набор занимает примерно 33 секунды. `MANUAL-TEST.md` описывает проверку двух браузерных сессий.
 
-See `MANUAL-TEST.md` for the two-browser-session test record and checklist.
+Библиотека из рядов 1–3 согласованного листа содержит 27 WebP и карту для будущих 14 раундов. Ряд 4 исключён. Описание — `ASSETS.md`, просмотр — `/assets/catalog.html`, проверка — `npm run check:assets`. Наличие иллюстрации не добавляет новый игровой раунд автоматически.

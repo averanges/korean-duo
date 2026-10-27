@@ -1,29 +1,58 @@
-# Deploy Korean Duo with GitHub Pages + Render
+# Обновление существующих GitHub Pages и Render
 
-## 1. GitHub
-Upload this entire directory to a new GitHub repository (keep `server.js`, `content/`, `public/`, and `docs/` at the repository root).
+## Что сохранено
 
-## 2. Render backend
-- Dashboard > New > Web Service > connect the repository.
-- Runtime: Node.
-- Build command: `npm ci --omit=dev`
-- Start command: `npm start`
-- Add environment variable `CLIENT_ORIGIN=https://YOUR-USERNAME.github.io` (no trailing slash). This is the browser **origin**, not the repository subpath.
-- For a Pages custom domain, use the custom domain origin instead.
-- Deploy with one running instance, because rooms live in server memory.
-- Copy its URL, such as `https://korean-duo-server.onrender.com`.
+- Текущий репозиторий и ветка `master`.
+- GitHub Pages из `/docs`.
+- Рабочий адрес в `docs/config.js`: `https://korean-duo.onrender.com`.
+- Backend: Node.js/Express/Socket.IO на Render.
+- CORS: переменная Render `CLIENT_ORIGIN`, без изменения её механизма.
 
-## 3. Configure frontend
-- Edit `docs/config.js` and replace `https://REPLACE-ME.onrender.com` with the actual Render URL (without trailing slash); commit.
-- GitHub repo > Settings > Pages > Build and deployment > Deploy from a branch > `main` > `/docs` > Save.
-- Open `https://YOUR-USERNAME.github.io/YOUR-REPOSITORY/` on two browsers.
+Новый протокол заменяет старую игру. Клиент 2.0 должен работать с сервером 2.0; при кратковременном несовпадении версий клиент покажет понятное сообщение.
 
-## 4. Validate
-- Open browser developer tools (Console/Network). Confirm `socket.io.js` loads from Render, WebSocket/long polling connects, and game illustrations load from Render.
-- Player A creates a room, B joins, both submit, results appear.
-- If `CLIENT_ORIGIN` changes, redeploy Render.
+## Перед отправкой
 
-## Notes
-- All hidden answer keys remain only on Render. `docs/` contains no answer keys.
-- Free Render services may sleep, causing delayed first connections, and server restarts lose rooms.
-- You can also use Render only: the same backend already serves the frontend at the Render URL, without GitHub Pages.
+В корне проекта:
+
+```sh
+npm ci
+npm run sync:pages
+npm test
+git diff --check
+git status
+```
+
+Проверьте изменения, затем сохраните их обычным коммитом и отправьте в текущую ветку:
+
+```sh
+git add .
+git commit -m "Refactor Korean Duo to cooperative question tasks"
+git push origin master
+```
+
+Не добавляйте `.env`, секреты или `node_modules`; они исключены из Git. `docs/config.js` уже содержит нужный адрес — менять его на шаблон не нужно.
+
+## Render
+
+Сервис должен использовать эту же ветку/коммит, тип **Web Service**, runtime **Node**, build `npm ci --omit=dev`, start `npm start`. Один экземпляр, потому что комнаты в памяти.
+
+Сохраните действующее значение `CLIENT_ORIGIN`. Для стандартного Pages данного репозитория это origin `https://averanges.github.io` **без** `/korean-duo/`. Для своего домена нужен его origin.
+
+Дождитесь успешного автодеплоя или используйте Deploy latest commit. Проверьте `/health`: ожидается `{ "ok": true, "version": "2.0.0" }`. Активные комнаты прежней версии исчезнут при перезапуске.
+
+## GitHub Pages
+
+Сохраните настройку Pages: Deploy from a branch → `master` → `/docs`. Дождитесь окончания публикации того же коммита. Для аккуратного обновления дождитесь готовности backend 2.0 прежде, чем проверять новый Pages-клиент.
+
+Откройте `https://averanges.github.io/korean-duo/` в двух новых браузерных сессиях. При старой закэшированной странице обновите её с очисткой кэша.
+
+## Проверка на опубликованном сайте
+
+1. Оба клиента показывают подключение; Socket.IO JS и картинки загружаются с текущего Render URL.
+2. A создаёт комнату, B входит. Таймер выключен по умолчанию и отсутствует в игровом заголовке.
+3. После двух «Готово» первый раунд сразу сменяется вторым, без результатов.
+4. После второго появляется экран завершения без полного ключа.
+5. Перезагрузите вкладку после выбора: ответ должен сохраниться.
+6. Повторите с таймером 30 секунд: отсчёт общий, истечение переводит обоих дальше.
+
+Локальные проверки приложения и cross-origin preview не заменяют этот финальный тест после публикации. Рабочие GitHub/Render не обновляются простым изменением файлов на компьютере.

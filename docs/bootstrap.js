@@ -1,9 +1,25 @@
-// Load Socket.IO client from the same Render server that runs the multiplayer backend.
-const server = String(window.KOREAN_DUO_SERVER || '').replace(/\/$/, '');
-if (!server.includes('REPLACE-ME') && /^https:\/\/[^/]+$/.test(server)) {
-  const s = document.createElement('script');
-  s.src = server + '/socket.io/socket.io.js';
-  s.onload = () => { const app = document.createElement('script'); app.src = './app.js'; document.body.append(app); };
-  s.onerror = () => { document.getElementById('connection').textContent = 'Не удалось загрузить клиент Socket.IO с Render'; };
-  document.head.append(s);
-}
+// Load the client library from Render, then the synchronized Pages application.
+(() => {
+  const server = String(window.KOREAN_DUO_SERVER || '').replace(/\/$/, '');
+  let valid = false;
+  try {
+    const url = new URL(server);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    valid = (url.protocol === 'https:' || (url.protocol === 'http:' && local)) && url.pathname === '/' && !url.search && !url.hash && !url.username && !url.password;
+  } catch {}
+  const error = text => {
+    document.getElementById('connection').textContent = text;
+    document.getElementById('entry-connection').textContent = text;
+    document.getElementById('notice').textContent = text;
+  };
+  if (!valid || server.includes('REPLACE-ME')) return error('Проверьте адрес Render в docs/config.js.');
+  const library = document.createElement('script');
+  library.src = server + '/socket.io/socket.io.js';
+  library.onload = () => {
+    const app = document.createElement('script'); app.src = './app.js';
+    app.onerror = () => error('Не удалось загрузить игру. Обновите страницу.');
+    document.body.append(app);
+  };
+  library.onerror = () => error('Не удалось загрузить клиент с Render. Сервер может запускаться — обновите страницу чуть позже.');
+  document.head.append(library);
+})();

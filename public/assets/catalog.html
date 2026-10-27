@@ -1,0 +1,17 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Korean Duo — библиотека иллюстраций</title><style>
+*{box-sizing:border-box}body{margin:0;background:#111e36;color:#e9f1ff;font-family:Segoe UI,Arial,sans-serif}main{max-width:1300px;margin:auto;padding:35px 25px}h1{font-size:32px;margin:10px 0}p{color:#adc0e1;line-height:1.8;font-size:14px}.tag{color:#9ce1c7;font-size:11px;letter-spacing:2px}h2{font-size:22px;margin-top:35px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}.asset{background:#23395b;border:1px solid #425d86;border-radius:18px;overflow:hidden}.asset img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#f6f3e9}.caption{padding:14px}.caption strong{display:block;font-size:19px}.caption small{display:block;color:#b4c9e8;margin-top:5px;font-size:12px}.caption code{display:block;margin-top:9px;font-size:10px;overflow-wrap:anywhere;color:#a8c1ee}.alias{font-size:11px;color:#d2cbfd;margin-top:7px}a{color:#a8d8ff}#error{color:#ffd29c}</style></head><body><main><div class="tag">KOREAN DUO · VISUAL LIBRARY</div><h1>Предметы. Действия. Места.</h1><p>Словарь ученика · иллюстрации из согласованного листа · WebP 512 × 512.<br>Это каталог ресурсов для будущих раундов, без ключей ответов и редактора уровней.</p><p><a href="./manifest.json">Манифест ресурсов</a></p><div id="catalog"></div><p id="error" role="status"></p></main><script>
+fetch('./manifest.json').then(r=>{if(!r.ok)throw new Error('Манифест недоступен');return r.json()}).then(manifest=>{
+ const names={objects:'Предметы',actions:'Действия',places:'Места'};
+ for(const [category,title] of Object.entries(names)){
+  const h=document.createElement('h2');h.textContent=title;document.getElementById('catalog').append(h);
+  const grid=document.createElement('div');grid.className='grid';
+  for(const [id,item]of Object.entries(manifest.assets).filter(([,a])=>a.category===category)){
+   const card=document.createElement('article');card.className='asset';const img=document.createElement('img');img.src=item.path;img.alt=item.labelRu;
+   const caption=document.createElement('div');caption.className='caption';const ko=document.createElement('strong');ko.textContent=item.labelKo;ko.lang='ko';const ru=document.createElement('small');ru.textContent=item.labelRu;
+   const path=document.createElement('code');path.textContent=item.path;caption.append(ko,ru,path);
+   if(item.aliasOf){const alias=document.createElement('div');alias.className='alias';alias.textContent='Общее изображение движения: направление задаёт вопрос';caption.append(alias);}
+   card.append(img,caption);grid.append(card);
+  }document.getElementById('catalog').append(grid);
+ }
+}).catch(e=>document.getElementById('error').textContent=e.message);
+</script></body></html>

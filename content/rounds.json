@@ -1,0 +1,63 @@
+[
+  {
+    "id": "round-1",
+    "title": "Первый раунд · 기본 행동",
+    "durationSeconds": 60,
+    "cards": [
+      {
+        "id": "card-1",
+        "title": "Карточка 1",
+        "actions": [
+          {
+            "id": "read",
+            "label": "책을 읽다",
+            "english": "Reading a book",
+            "image": "/assets/read.webp",
+            "status": "REQUIRED"
+          },
+          {
+            "id": "drink",
+            "label": "물을 마시다",
+            "english": "Drinking water",
+            "image": "/assets/drink.webp",
+            "status": "FORBIDDEN"
+          },
+          {
+            "id": "dance",
+            "label": "춤을 추다",
+            "english": "Dancing",
+            "image": "/assets/dance.webp",
+            "status": "REQUIRED"
+          }
+        ]
+      },
+      {
+        "id": "card-2",
+        "title": "Карточка 2",
+        "actions": [
+          {
+            "id": "run",
+            "label": "달리다",
+            "english": "Running",
+            "image": "/assets/run.webp",
+            "status": "FORBIDDEN"
+          },
+          {
+            "id": "eat",
+            "label": "사과를 먹다",
+            "english": "Eating an apple",
+            "image": "/assets/eat.webp",
+            "status": "REQUIRED"
+          },
+          {
+            "id": "sleep",
+            "label": "자다",
+            "english": "Sleeping",
+            "image": "/assets/sleep.webp",
+            "status": "REQUIRED"
+          }
+        ]
+      }
+    ]
+  }
+]

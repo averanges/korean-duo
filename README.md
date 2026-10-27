@@ -146,6 +146,3 @@ npm test
 Tests start isolated real HTTP servers and simultaneous Socket.IO clients. They verify answer privacy, room capacity, host authority, malformed/stale answers, changeable drafts, complete submissions, locking, recovery, shared results, deadlines, actual timeout, restart/reset, first-round content, asset availability, and content-key routes returning 404. A second test-only round checks future progression without shipping advanced levels.
 
 See `MANUAL-TEST.md` for the two-browser-session test record and checklist.
-#   k o r e a n - d u o  
- #   k o r e a n - d u o  
- 
